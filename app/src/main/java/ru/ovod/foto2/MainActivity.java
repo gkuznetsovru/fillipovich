@@ -24,9 +24,6 @@ import java.util.Random;
 
 import pub.devrel.easypermissions.EasyPermissions;
 
-import  ru.ovod.foto2.ModelClass.ImageSenderInfo;
-
-
 
 
 public class MainActivity extends AppCompatActivity {
@@ -41,18 +38,18 @@ public class MainActivity extends AppCompatActivity {
     private File file;
 
 
-    private static final String TAG = MainActivity.class.getSimpleName();
+ /*   private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_GALLERY_CODE = 200;
     private static final int READ_REQUEST_CODE = 300;
     private static final String SERVER_PATH = "Path_to_your_server";
-    private Uri uri;
+    private Uri uri; */
 
 
-    int serverResponseCode = 0;
+ //   int serverResponseCode = 0;
     ProgressDialog dialog = null;
-    String upLoadServerUri = null;
+ /*   String upLoadServerUri = null;
     final String uploadFilePath = "/mnt/sdcard/";
-    final String uploadFileName = "service_lifecycle.png";
+    final String uploadFileName = "service_lifecycle.png"; */
 
 
     @Override
@@ -106,11 +103,7 @@ public class MainActivity extends AppCompatActivity {
         String filename = "";
         long millis = System.currentTimeMillis();
         String datetime = ""; //new Date().toGMTString();
-//        datetime = datetime.replace(" ", "");
-//        datetime = datetime.replace(":", "");
 
-        //String rndchars = randomString(16);
-        //filename = rndchars + "_" + datetime + "_" + millis;
 
         filename ="_" + millis;
         return filename;
@@ -129,15 +122,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-//        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-//            Bundle extras = data.getExtras();
-//            android.graphics.Bitmap imageBitmap = (android.graphics.Bitmap) extras.get("data");
-//            MyImage.setImageBitmap(imageBitmap);
-//        }
 
-/*        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            MyImage.setImageURI(photoURI);
-        }*/
 
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             // Проверяем, содержит ли результат маленькую картинку
@@ -241,55 +226,5 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-
-
-
-
-
-
-/*    private String getRealPathFromURIPath(Uri contentURI, Activity activity) {
-        Cursor cursor = activity.getContentResolver().query(contentURI, null, null, null, null);
-        if (cursor == null) {
-            return contentURI.getPath();
-        } else {
-            cursor.moveToFirst();
-            int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
-            return cursor.getString(idx);
-        }
-    }
-    @Override
-    public void onPermissionsGranted(int requestCode, List<String> perms) {
-        if(uri != null){
-            String filePath = getRealPathFromURIPath(uri, MainActivity.this);
-            File file = new File(filePath);
-            RequestBody mFile = RequestBody.create(MediaType.parse("image/*"), file);
-            MultipartBody.Part fileToUpload = MultipartBody.Part.createFormData("file", file.getName(), mFile);
-            RequestBody filename = RequestBody.create(MediaType.parse("text/plain"), file.getName());
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl(SERVER_PATH)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
-            UploadImageInterface uploadImage = retrofit.create(UploadImageInterface.class);
-            Call<UploadObject> fileUpload = uploadImage.uploadFile(fileToUpload, filename);
-            fileUpload.enqueue(new Callback<UploadObject>() {
-                @Override
-                public void onResponse(Call<UploadObject> call, Response<UploadObject> response) {
-                    Toast.makeText(MainActivity.this, "Success " + response.message(), Toast.LENGTH_LONG).show();
-                    Toast.makeText(MainActivity.this, "Success " + response.body().toString(), Toast.LENGTH_LONG).show();
-                }
-                @Override
-                public void onFailure(Call<UploadObject> call, Throwable t) {
-                    Log.d(TAG, "Error " + t.getMessage());
-                }
-            });
-        }
-    }
-    @Override
-    public void onPermissionsDenied(int requestCode, List<String> perms) {
-        Log.d(TAG, "Permission has been denied");
-    } */
-
-
-
 
 }
