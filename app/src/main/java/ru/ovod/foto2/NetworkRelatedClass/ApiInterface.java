@@ -19,3 +19,4 @@ public interface ApiInterface {
             @Part MultipartBody.Part file);
 
 }
+

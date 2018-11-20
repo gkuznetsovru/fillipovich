@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">Автоцентр Овод</string>
     <string name="Sync">Sync</string>
+    <string name="imageDescription">Фотография</string>
+    <string name="editTextHint">Номер заказ-наряда</string>
+    <string name="buttonHint">Сделать фото</string>
+    <string name="button2Hint">Новый</string>
 </resources>
