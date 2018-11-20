@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
     private Uri outputFileUri;
     private TextView filepath;
     private File file;
+    private String path;
 
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
@@ -52,18 +53,7 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
- /*   private static final String TAG = MainActivity.class.getSimpleName();
-    private static final int REQUEST_GALLERY_CODE = 200;
-    private static final int READ_REQUEST_CODE = 300;
-    private static final String SERVER_PATH = "Path_to_your_server";
-    private Uri uri; */
-
-
- //   int serverResponseCode = 0;
     ProgressDialog dialog = null;
- /*   String upLoadServerUri = null;
-    final String uploadFilePath = "/mnt/sdcard/";
-    final String uploadFileName = "service_lifecycle.png"; */
 
 
     @Override
@@ -73,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
         MyImage=(android.widget.ImageView)findViewById(R.id.mImageView);
         OrderEdit=(android.widget.EditText)findViewById(R.id.editText);
         filepath=(android.widget.TextView)findViewById(R.id.filepath);
+        path = Environment.getExternalStorageDirectory().toString();
 
         verifyStoragePermissions(this);
     }
@@ -119,7 +110,21 @@ public class MainActivity extends AppCompatActivity {
     public void onEvent(EventModel event) throws ClassNotFoundException {
         if (event.isTagMatchWith("response")) {
             String responseMessage = "Response from Server:\n" + event.getMessage();
-            filepath.append(responseMessage+"\n");
+            if (event.getMessage().contains("error"))
+               {
+               filepath.append(responseMessage+"\n");
+               }
+               else {
+                filepath.append("Файл отправлен:\n");
+                filepath.append(event.getMessage() + "\n");
+                File file = new File(path+"/"+event.getMessage());
+                Boolean b = file.delete();
+                if (b)
+                {
+                    filepath.append("Файл удалён:\n");
+                    filepath.append(event.getMessage() + "\n");
+                };
+            };
         }
     }
 
@@ -215,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void saveFullImage(String fn) {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        file = new File(Environment.getExternalStorageDirectory(),
+        file = new File(path,
                 fn);
 //                "Test.jpg");
         filepath.setText(file.getPath()+file.getName());
@@ -231,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
         //filepath.setText(GetFileName());
 
         filepath.setText("");
-        String path = Environment.getExternalStorageDirectory().toString();
+        //String path = Environment.getExternalStorageDirectory().toString();
         //filepath.append("Path: " + path+"\n" );
         File directory = new File(path);
         File[] files = directory.listFiles();
@@ -241,10 +246,9 @@ public class MainActivity extends AppCompatActivity {
             if (files[i].getName().contains("jpg")) {
                 filepath.append("Начало отправки файла:\n");
                 filepath.append(files[i].getName() + "\n");
-                String name = "gfdgfd"; // сопроводительная информация
-                int age = 45; // сопроводительная информация
+                String name = "gfdgfd"; // сопроводительная информация - пока оставил, потом что-нибудь полезное передавать будем
+                int age = 45; // сопроводительная информация - пока оставил, потом что-нибудь полезное передавать будем
                 ru.ovod.foto2.NetworkRelatedClass.NetworkCall.fileUpload(path+"/"+files[i].getName(), new ru.ovod.foto2.ModelClass.ImageSenderInfo(name, age));
-                filepath.append("Файл отправлен\n");
                 //break;
 
             };
@@ -253,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    /*@Override
+    @Override
     public void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
@@ -263,7 +267,7 @@ public class MainActivity extends AppCompatActivity {
     public void onStop() {
         EventBus.getDefault().unregister(this);
         super.onStop();
-    }*/
+    }
 
 
     public static void verifyStoragePermissions(Activity activity) {
