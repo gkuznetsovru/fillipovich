@@ -48,6 +48,7 @@ dependencies {
     implementation 'com.orhanobut:logger:2.1.1'
     implementation 'org.greenrobot:eventbus:3.0.0'
     testImplementation 'junit:junit:4.12'
+    implementation 'org.jetbrains:annotations-java5:15.0'
 }
 
 

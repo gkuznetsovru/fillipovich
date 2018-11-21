@@ -55,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
 
     ProgressDialog dialog = null;
 
+    DBHelper dbhelper;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
         path = Environment.getExternalStorageDirectory().toString();
 
         verifyStoragePermissions(this);
+        dbhelper = new DBHelper(this);;
     }
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
