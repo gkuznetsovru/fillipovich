@@ -55,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
+    private TableLayout tablelayout;
+
     ProgressDialog dialog = null;
 
     DBHelper dbhelper;
@@ -68,6 +70,9 @@ public class MainActivity extends AppCompatActivity {
         OrderEdit=(android.widget.EditText)findViewById(R.id.editText);
         filepath=(android.widget.TextView)findViewById(R.id.filepath);
         path = Environment.getExternalStorageDirectory().toString();
+        tablelayout = (TableLayout)findViewById(R.id.tablelayout);
+        tablelayout.setColumnStretchable(0,true);
+        tablelayout.setColumnStretchable(1,true);
 
         verifyStoragePermissions(this);
         dbhelper = new DBHelper();
@@ -76,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         int BOOKSHELF_ROWS = 5;
         int BOOKSHELF_COLUMNS = 5;
 
-        TableLayout tableLayout = (TableLayout) findViewById(R.id.tableLayout);
+      /*  TableLayout tableLayout = (TableLayout) findViewById(R.id.tableLayout);
 
         for (int i = 0; i < BOOKSHELF_ROWS; i++) {
 
@@ -93,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             tableLayout.addView(tableRow, i);
-        }
+        }*/
 
     }
 
@@ -117,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void NewOrder(View view) {
         OrderEdit.setText("");
+        AddTableRow("23444",4454,3);
         }
 
 
@@ -311,6 +317,33 @@ public class MainActivity extends AppCompatActivity {
                     REQUEST_EXTERNAL_STORAGE
             );
         }
+    }
+
+    private void  AddTableRow(String Numd, Integer OrderId, Integer coun)
+    {
+
+        TextView col1= new TextView(this);
+        TextView col2= new TextView(this);
+        TextView col3= new TextView(this);
+
+        col1.setText("0");
+        col2.setText("0");
+        col3.setText("0");
+ /*       col1.setText("№ "+Numd);
+        col2.setText(OrderId);
+        col3.setText(coun);
+*/
+        TableRow tableRow = new TableRow(this);
+
+      //  tableRow.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
+      //          LayoutParams.WRAP_CONTENT));
+
+
+        tableRow.addView(col1, 1);
+        tableRow.addView(col2, 2);
+        tableRow.addView(col3, 3);
+
+        tablelayout.addView(tableRow);
     }
 
 }

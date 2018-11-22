@@ -9,20 +9,19 @@
     tools:showIn="@layout/activity_main">
 
     <TableLayout
-        android:id="@+id/tableLayout"
+        android:id="@+id/tablelayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp">
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+        <TextView
+            android:id="@+id/nametable"
+            android:gravity="top"
+            android:text="Список актов"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/textView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="TextView" />
-        </TableRow>
 
     </TableLayout>
 
