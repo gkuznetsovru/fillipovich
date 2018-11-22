@@ -2,7 +2,7 @@ package ru.ovod.foto2;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper
+import android.database.sqlite.SQLiteOpenHelper;
 
 public class DBHelper extends SQLiteOpenHelper {
 
@@ -22,8 +22,8 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String PHOTO_INSPECTION = "inspectionid";  // ссылка на ID инспекции
     public static final String PHOTO_ISSYNC = "issync";  // признак, что фото залито на сервер
 
-    public DBHelper(Context context, String name, int version) {
-        super(context, DB_Name, null, DB_VERSION);
+    public DBHelper() {
+        super(null, DB_Name, null, DB_VERSION);
     }
 
     @Override

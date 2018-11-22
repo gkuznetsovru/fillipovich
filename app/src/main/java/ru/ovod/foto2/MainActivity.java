@@ -18,6 +18,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -68,7 +70,31 @@ public class MainActivity extends AppCompatActivity {
         path = Environment.getExternalStorageDirectory().toString();
 
         verifyStoragePermissions(this);
-        dbhelper = new DBHelper(this);;
+        dbhelper = new DBHelper();
+
+
+        int BOOKSHELF_ROWS = 5;
+        int BOOKSHELF_COLUMNS = 5;
+
+        TableLayout tableLayout = (TableLayout) findViewById(R.id.tableLayout);
+
+        for (int i = 0; i < BOOKSHELF_ROWS; i++) {
+
+            TableRow tableRow = new TableRow(this);
+            tableRow.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
+                    LayoutParams.WRAP_CONTENT));
+            //tableRow.setBackgroundResource(R.drawable.shelf);
+
+            for (int j = 0; j < BOOKSHELF_COLUMNS; j++) {
+                ImageView imageView = new ImageView(this);
+                imageView.setImageResource(R.drawable.book);
+
+                tableRow.addView(imageView, j);
+            }
+
+            tableLayout.addView(tableRow, i);
+        }
+
     }
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
