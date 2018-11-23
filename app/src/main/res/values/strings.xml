@@ -5,4 +5,5 @@
     <string name="editTextHint">Номер заказ-наряда</string>
     <string name="buttonHint">Сделать фото</string>
     <string name="button2Hint">Новый</string>
+    <string name="ListActs">Список актов</string>
 </resources>

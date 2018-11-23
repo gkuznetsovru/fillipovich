@@ -3,8 +3,10 @@ package ru.ovod.foto2;
 import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,6 +17,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -48,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView filepath;
     private File file;
     private String path;
+    private Integer StrCount;
 
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
@@ -71,15 +75,17 @@ public class MainActivity extends AppCompatActivity {
         filepath=(android.widget.TextView)findViewById(R.id.filepath);
         path = Environment.getExternalStorageDirectory().toString();
         tablelayout = (TableLayout)findViewById(R.id.tablelayout);
-        tablelayout.setColumnStretchable(0,true);
-        tablelayout.setColumnStretchable(1,true);
+        //tablelayout.setColumnStretchable(0,true);
+        //tablelayout.setColumnStretchable(1,true);
+        StrCount=0;
 
         verifyStoragePermissions(this);
-        dbhelper = new DBHelper();
-
+        dbhelper = new DBHelper(getApplicationContext());
 
         int BOOKSHELF_ROWS = 5;
         int BOOKSHELF_COLUMNS = 5;
+
+
 
       /*  TableLayout tableLayout = (TableLayout) findViewById(R.id.tableLayout);
 
@@ -117,12 +123,31 @@ public class MainActivity extends AppCompatActivity {
 //            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
 //        }
         //dispatchTakePictureIntent();
+        if  (OrderEdit.getText().length() == 0) {
+            showToast("Укажите номер заказ-наряда.");
+            return;
+        }
         saveFullImage(GetFileName());
     }
 
+    public  void CreateNewInspection() {
+        SQLiteDatabase database = dbhelper.getWritableDatabase();;
+        ContentValues contentValues = new ContentValues();
+        try {
+            contentValues.put(DBHelper.INSPECTION_NUMBER, OrderEdit.getText().toString());
+            database.insert(DBHelper.INSPECTION, null, contentValues);
+        } finally {
+            database.close();
+        }
+    }
+
+
     public void NewOrder(View view) {
-        OrderEdit.setText("");
-        AddTableRow("23444",4454,3);
+//        OrderEdit.setText(""); // Восстановить !!
+        StrCount=StrCount+7;
+
+        CreateNewInspection();
+        AddTableRow("23444",4454, 234, StrCount);
         }
 
 
@@ -161,6 +186,15 @@ public class MainActivity extends AppCompatActivity {
                 };
             };
         }
+    }
+
+    public void showToast(String mes) {
+        //создаём и отображаем текстовое уведомление
+        Toast toast = Toast.makeText(getApplicationContext(),
+                mes,
+                Toast.LENGTH_SHORT);
+        toast.setGravity(Gravity.CENTER, 0, 0);
+        toast.show();
     }
 
 
@@ -285,11 +319,8 @@ public class MainActivity extends AppCompatActivity {
                 int age = 45; // сопроводительная информация - пока оставил, потом что-нибудь полезное передавать будем
                 ru.ovod.foto2.NetworkRelatedClass.NetworkCall.fileUpload(path+"/"+files[i].getName(), new ru.ovod.foto2.ModelClass.ImageSenderInfo(name, age));
                 //break;
-
             };
         }
-
-
     }
 
     @Override
@@ -319,29 +350,33 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void  AddTableRow(String Numd, Integer OrderId, Integer coun)
+    private void  AddTableRow(String Numd, Integer OrderId, Integer inspectionid, Integer coun)
     {
 
         TextView col1= new TextView(this);
         TextView col2= new TextView(this);
         TextView col3= new TextView(this);
 
-        col1.setText("0");
-        col2.setText("0");
-        col3.setText("0");
- /*       col1.setText("№ "+Numd);
-        col2.setText(OrderId);
-        col3.setText(coun);
-*/
+
+        /*col1.setText("001");
+        col2.setText("0002");
+        col3.setText("333");*/
+        col1.setText("№ "+Numd);
+        col2.setText(OrderId.toString());
+        col3.setText(coun.toString());
+
         TableRow tableRow = new TableRow(this);
 
       //  tableRow.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
       //          LayoutParams.WRAP_CONTENT));
 
 
-        tableRow.addView(col1, 1);
-        tableRow.addView(col2, 2);
-        tableRow.addView(col3, 3);
+        tableRow.addView(col1);
+        tableRow.addView(col2);
+        tableRow.addView(col3);
+        tableRow.setPadding(5,7,5,7);
+//        tableRow.addView(col2, 2);
+//        tableRow.addView(col3, 3);
 
         tablelayout.addView(tableRow);
     }
