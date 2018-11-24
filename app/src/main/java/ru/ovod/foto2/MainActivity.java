@@ -42,9 +42,12 @@ import ru.ovod.foto2.ModelClass.EventModel;
 
 public class MainActivity extends AppCompatActivity {
 
+    // Объявление глобальных перемен
+    private Integer OrderID = 0;  // OrderID - глобальный параметр выбранного акта осомтра (0 - новый или не выбрано)
+    private EditText OrderEdit; // Edit с номером ЗН. Инициализируется OnCreate.
+
 
     private ImageView MyImage;
-    private EditText OrderEdit;
     private String mCurrentPhotoPath;
     private Uri photoURI;
     private Uri outputFileUri;
@@ -131,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public  void CreateNewInspection() {
-        SQLiteDatabase database = dbhelper.getWritableDatabase();;
+        SQLiteDatabase database = dbhelper.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         try {
             contentValues.put(DBHelper.INSPECTION_NUMBER, OrderEdit.getText().toString());
@@ -350,7 +353,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void  AddTableRow(String Numd, Integer OrderId, Integer inspectionid, Integer coun)
+    private void  AddTableRow(String Numd, Integer Int_OrderId, Integer inspectionid, Integer coun)
     {
 
         TextView col1= new TextView(this);
@@ -362,7 +365,7 @@ public class MainActivity extends AppCompatActivity {
         col2.setText("0002");
         col3.setText("333");*/
         col1.setText("№ "+Numd);
-        col2.setText(OrderId.toString());
+        col2.setText(Int_OrderId.toString());
         col3.setText(coun.toString());
 
         TableRow tableRow = new TableRow(this);
