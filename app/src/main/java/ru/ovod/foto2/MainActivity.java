@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
         if (InspectionID_Number!=OrderEdit.getText().toString()) { // если предыдущий номер ЗН для сканирования был другой
             InspectionID = GetInspectionIDByNumber(); // поищем тот что вбил мастер
             if (InspectionID == 0) {  // Если 0, то  сгенерим новый
-                CreateNewInspection();
+                InspectionID = CreateNewInspection();
             }
             InspectionID_Number = OrderEdit.getText().toString();
         }
@@ -119,13 +119,13 @@ public class MainActivity extends AppCompatActivity {
 
 
     // сформируем новй акт по ЗН
-    public  void CreateNewInspection() {
+    public  Integer CreateNewInspection() {
             ContentValues contentValues = new ContentValues();
             contentValues.put(DBHelper.INSPECTION_NUMBER, OrderEdit.getText().toString());
             Long Inspect = database.insert(DBHelper.INSPECTION, null, contentValues);
-            InspectionID =  Inspect !=null ? Inspect.intValue() :null;
+            Integer id =  Inspect !=null ? Inspect.intValue() :null;
             Log.e("ID", InspectionID.toString());
-
+            return id;
     }
 
 
@@ -133,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
     public  Integer GetInspectionIDByNumber() {
         //return 0;
         Integer id=0;
+    //    String SQL = "SELECT " + DBHelper.INSPECTION_ID + " " + " FROM " + DBHelper.INSPECTION;
         String SQL = "SELECT " + DBHelper.INSPECTION_ID + " "
                     + " FROM " + DBHelper.INSPECTION + " where " + DBHelper.INSPECTION_NUMBER +" = '"+OrderEdit.getText().toString()+"'";
         Cursor cursor = database.rawQuery(SQL, null);
@@ -147,12 +148,33 @@ public class MainActivity extends AppCompatActivity {
         return id;
     }
 
+
+    // Фунция получает список Inspections из базу
+    public  void GetInspectionListFromDB() {
+        //return 0;
+        String SQL = "SELECT " + DBHelper.INSPECTION_ID + ", " + DBHelper.INSPECTION_NUMBER + ", "+ DBHelper.INSPECTION_ORDERID + " "
+                + " FROM " + DBHelper.INSPECTION + " Order by "+ DBHelper.INSPECTION_ID;
+        Cursor cursor = database.rawQuery(SQL, null);
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                String num = cursor.getString(cursor.getColumnIndex(DBHelper.INSPECTION_NUMBER));
+                Integer OrdID = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ORDERID));
+                Integer InsID = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ID));
+                AddTableRow(num,OrdID,InsID,0);
+              Log.e("DB ", "Извлекли INSPECTION_ID: " + InsID);
+            }
+        }
+        if (!cursor.isClosed()) {cursor.close();}
+        return;
+    }
+
     public void NewOrder(View view) {
 //        OrderEdit.setText(""); // Восстановить !!
         StrCount=StrCount+7;
 
         CreateNewInspection();
-        AddTableRow("23444",4454, 234, StrCount);
+        GetInspectionListFromDB();
+        //AddTableRow("23444",4454, 234, StrCount);
         }
 
 
@@ -356,7 +378,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // функция доабвление строки
-    private void  AddTableRow(String Numd, Integer Int_OrderId, Integer inspectionid, Integer coun)
+    private void  AddTableRow(String Numd, Integer Int_OrderId, Integer inspectid, Integer coun)
     {
 
         TextView col1= new TextView(this);
@@ -364,9 +386,9 @@ public class MainActivity extends AppCompatActivity {
         TextView col3= new TextView(this);
 
 
-        col1.setText("№ "+Numd);
-        col2.setText(Int_OrderId.toString());
-        col3.setText(coun.toString());
+        col1.setText("№ "+Numd +" ");
+        col2.setText("ID:"+inspectid.toString());
+        col3.setText(" Ф: " +coun.toString());
 
         TableRow tableRow = new TableRow(this);
 
