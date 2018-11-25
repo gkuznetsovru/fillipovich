@@ -6,6 +6,7 @@ import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -34,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Random;
+import android.util.Log;
 
 import pub.devrel.easypermissions.EasyPermissions;
 
@@ -42,10 +44,14 @@ import ru.ovod.foto2.ModelClass.EventModel;
 
 public class MainActivity extends AppCompatActivity {
 
-    // Объявление глобальных перемен
-    private Integer OrderID = 0;  // OrderID - глобальный параметр выбранного акта осомтра (0 - новый или не выбрано)
-    private EditText OrderEdit; // Edit с номером ЗН. Инициализируется OnCreate.
+    // Объявление глобальных переменных
+    private Integer InspectionID =0; // InspectionID - текущий (активный) акт осмотра
+    private String InspectionID_Number = ""; // Номер заказ-наряда, который привязан к выбранному InspectionID (объявлен выше)
+    private Integer OrderID = 0;  // OrderID
+    private EditText OrderEdit; //поле Edit с номером ЗН. Инициализируется OnCreate.
 
+
+    SQLiteDatabase database;
 
     private ImageView MyImage;
     private String mCurrentPhotoPath;
@@ -78,36 +84,11 @@ public class MainActivity extends AppCompatActivity {
         filepath=(android.widget.TextView)findViewById(R.id.filepath);
         path = Environment.getExternalStorageDirectory().toString();
         tablelayout = (TableLayout)findViewById(R.id.tablelayout);
-        //tablelayout.setColumnStretchable(0,true);
-        //tablelayout.setColumnStretchable(1,true);
         StrCount=0;
 
         verifyStoragePermissions(this);
         dbhelper = new DBHelper(getApplicationContext());
-
-        int BOOKSHELF_ROWS = 5;
-        int BOOKSHELF_COLUMNS = 5;
-
-
-
-      /*  TableLayout tableLayout = (TableLayout) findViewById(R.id.tableLayout);
-
-        for (int i = 0; i < BOOKSHELF_ROWS; i++) {
-
-            TableRow tableRow = new TableRow(this);
-            tableRow.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
-                    LayoutParams.WRAP_CONTENT));
-            //tableRow.setBackgroundResource(R.drawable.shelf);
-
-            for (int j = 0; j < BOOKSHELF_COLUMNS; j++) {
-                ImageView imageView = new ImageView(this);
-                imageView.setImageResource(R.drawable.book);
-
-                tableRow.addView(imageView, j);
-            }
-
-            tableLayout.addView(tableRow, i);
-        }*/
+        database = dbhelper.getWritableDatabase();
 
     }
 
@@ -121,29 +102,50 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void MyClick(View view) {
-//        android.content.Intent takePictureIntent = new android.content.Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-//        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-//            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-//        }
-        //dispatchTakePictureIntent();
         if  (OrderEdit.getText().length() == 0) {
             showToast("Укажите номер заказ-наряда.");
             return;
         }
+
+        if (InspectionID_Number!=OrderEdit.getText().toString()) { // если предыдущий номер ЗН для сканирования был другой
+            InspectionID = GetInspectionIDByNumber(); // поищем тот что вбил мастер
+            if (InspectionID == 0) {  // Если 0, то  сгенерим новый
+                CreateNewInspection();
+            }
+            InspectionID_Number = OrderEdit.getText().toString();
+        }
         saveFullImage(GetFileName());
     }
 
+
+    // сформируем новй акт по ЗН
     public  void CreateNewInspection() {
-        SQLiteDatabase database = dbhelper.getWritableDatabase();
-        ContentValues contentValues = new ContentValues();
-        try {
+            ContentValues contentValues = new ContentValues();
             contentValues.put(DBHelper.INSPECTION_NUMBER, OrderEdit.getText().toString());
-            database.insert(DBHelper.INSPECTION, null, contentValues);
-        } finally {
-            database.close();
-        }
+            Long Inspect = database.insert(DBHelper.INSPECTION, null, contentValues);
+            InspectionID =  Inspect !=null ? Inspect.intValue() :null;
+            Log.e("ID", InspectionID.toString());
+
     }
 
+
+    // Фунция поиска INSPECTION_ID по номеру акта осмотра
+    public  Integer GetInspectionIDByNumber() {
+        //return 0;
+        Integer id=0;
+        String SQL = "SELECT " + DBHelper.INSPECTION_ID + " "
+                    + " FROM " + DBHelper.INSPECTION + " where " + DBHelper.INSPECTION_NUMBER +" = '"+OrderEdit.getText().toString()+"'";
+        Cursor cursor = database.rawQuery(SQL, null);
+        if (cursor != null) {
+            cursor.moveToFirst();
+            //while (cursor.moveToNext()) {
+            id = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ID));
+            Log.e("DB ", "Извлекли INSPECTION_ID: " + id);
+            //}
+        }
+        if (!cursor.isClosed()) {cursor.close();}
+        return id;
+    }
 
     public void NewOrder(View view) {
 //        OrderEdit.setText(""); // Восстановить !!
@@ -353,6 +355,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // функция доабвление строки
     private void  AddTableRow(String Numd, Integer Int_OrderId, Integer inspectionid, Integer coun)
     {
 
@@ -361,25 +364,16 @@ public class MainActivity extends AppCompatActivity {
         TextView col3= new TextView(this);
 
 
-        /*col1.setText("001");
-        col2.setText("0002");
-        col3.setText("333");*/
         col1.setText("№ "+Numd);
         col2.setText(Int_OrderId.toString());
         col3.setText(coun.toString());
 
         TableRow tableRow = new TableRow(this);
 
-      //  tableRow.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
-      //          LayoutParams.WRAP_CONTENT));
-
-
         tableRow.addView(col1);
         tableRow.addView(col2);
         tableRow.addView(col3);
         tableRow.setPadding(5,7,5,7);
-//        tableRow.addView(col2, 2);
-//        tableRow.addView(col3, 3);
 
         tablelayout.addView(tableRow);
     }
