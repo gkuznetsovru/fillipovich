@@ -4,7 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".MainActivity" >
 
-    <item android:title="Акты осмотра" />
-    <item android:title="ЗН с сервера" />
-    <item android:title="Настройки" />
+    <item android:title="@string/Menu_ListInspections"
+        android:id="@+id/Menu_ListInspections"
+        app:showAsAction="never"/>
+    <item android:title="@string/Menu_OrdersFromServer"
+        android:id="@+id/Menu_OrdersFromServer"
+        app:showAsAction="never"/>
+    <item android:title="@string/Menu_Settings"
+        android:id="@+id/Menu_Settings"
+        app:showAsAction="never"/>
 </menu>

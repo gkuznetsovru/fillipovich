@@ -6,4 +6,11 @@
     <string name="buttonHint">Сделать фото</string>
     <string name="button2Hint">Новый</string>
     <string name="ListActs">Список актов</string>
+    <string name="Menu_ListInspections">Акты осмотра</string>
+    <string name="Menu_OrdersFromServer">ЗН с сервера</string>
+    <string name="Menu_Settings">Настройки</string>
+    <string name="Text_ClearsAll">Очистить все акты и фото</string>
+    <string name="ClearAll">Очистка всех не залитых на сервер актов</string>
+    <string name="title_activity_settings">activity_settings</string>
+    <string name="action_settings">Settings</string>
 </resources>

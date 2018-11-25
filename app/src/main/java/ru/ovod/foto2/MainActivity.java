@@ -20,6 +20,7 @@ import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -94,22 +95,47 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-   /* @Override
-    public Boolean onCreateOptionsMenu(Menu menu)
-    {
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.mainmenu, menu);
-        return Boolean.TRUE;
+        return true;
     }
 
     @Override
-    public
-*/
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // получим идентификатор выбранного пункта меню
+        int id = item.getItemId();
+
+
+        // Операции для выбранного пункта меню
+        switch (id) {
+            case R.id.Menu_ListInspections:
+                SetListInspection();
+                return true;
+            case R.id.Menu_OrdersFromServer:
+              // infoTextView.setText("Вы выбрали кошку!");
+                return true;
+            case R.id.Menu_Settings:
+              //  infoTextView.setText("Вы выбрали котёнка!");
+                Intent intent = new Intent(MainActivity.this,  Settings.class);
+                startActivity(intent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void SetListInspection()
+    {
+        GetInspectionListFromDB();
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, MainActivity.this);
     }
+
 
     public void NewPhotoClick(View view) {
 
@@ -163,17 +189,8 @@ public class MainActivity extends AppCompatActivity {
     // Фунция получает список Inspections из базу
     public  void GetInspectionListFromDB() {
 
-        // сначала очистим TableRow
-
-       /* int count = tablelayout.getChildCount();
-        for (int i = 0; i < count; i++) {
-            View child = tablelayout.getChildAt(i);
-            if (child instanceof TableRow) {
-                ((ViewGroup) child).removeAllViews();
-            }
-            }*/
+        // очистикм tablelayout
         tablelayout.removeAllViewsInLayout();
-
 
         // получим из базы список Актов
 
@@ -195,9 +212,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void NewOrder(View view) {
         OrderEdit.setText(""); // Восстановить !!
-
-
-        GetInspectionListFromDB();
         }
 
 
