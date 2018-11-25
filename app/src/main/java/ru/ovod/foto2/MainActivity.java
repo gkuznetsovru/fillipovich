@@ -19,7 +19,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
+import android.view.Menu;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TableLayout;
@@ -54,19 +56,20 @@ public class MainActivity extends AppCompatActivity {
     SQLiteDatabase database;
 
     private ImageView MyImage;
-    private String mCurrentPhotoPath;
+//    private String mCurrentPhotoPath;
     private Uri photoURI;
     private Uri outputFileUri;
     private TextView filepath;
     private File file;
     private String path;
-    private Integer StrCount;
 
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
+
+    static final int REQUEST_IMAGE_CAPTURE = 1;
 
     private TableLayout tablelayout;
 
@@ -84,7 +87,6 @@ public class MainActivity extends AppCompatActivity {
         filepath=(android.widget.TextView)findViewById(R.id.filepath);
         path = Environment.getExternalStorageDirectory().toString();
         tablelayout = (TableLayout)findViewById(R.id.tablelayout);
-        StrCount=0;
 
         verifyStoragePermissions(this);
         dbhelper = new DBHelper(getApplicationContext());
@@ -92,8 +94,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    static final int REQUEST_IMAGE_CAPTURE = 1;
+   /* @Override
+    public Boolean onCreateOptionsMenu(Menu menu)
+    {
+        getMenuInflater().inflate(R.menu.mainmenu, menu);
+        return Boolean.TRUE;
+    }
 
+    @Override
+    public
+*/
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -101,8 +111,9 @@ public class MainActivity extends AppCompatActivity {
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, MainActivity.this);
     }
 
-    public void MyClick(View view) {
-        if  (OrderEdit.getText().length() == 0) {
+    public void NewPhotoClick(View view) {
+
+        if  (OrderEdit.getText().length() == 0) {  // Проверим, что ЗН выбран
             showToast("Укажите номер заказ-наряда.");
             return;
         }
@@ -151,7 +162,21 @@ public class MainActivity extends AppCompatActivity {
 
     // Фунция получает список Inspections из базу
     public  void GetInspectionListFromDB() {
-        //return 0;
+
+        // сначала очистим TableRow
+
+       /* int count = tablelayout.getChildCount();
+        for (int i = 0; i < count; i++) {
+            View child = tablelayout.getChildAt(i);
+            if (child instanceof TableRow) {
+                ((ViewGroup) child).removeAllViews();
+            }
+            }*/
+        tablelayout.removeAllViewsInLayout();
+
+
+        // получим из базы список Актов
+
         String SQL = "SELECT " + DBHelper.INSPECTION_ID + ", " + DBHelper.INSPECTION_NUMBER + ", "+ DBHelper.INSPECTION_ORDERID + " "
                 + " FROM " + DBHelper.INSPECTION + " Order by "+ DBHelper.INSPECTION_ID;
         Cursor cursor = database.rawQuery(SQL, null);
@@ -169,12 +194,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void NewOrder(View view) {
-//        OrderEdit.setText(""); // Восстановить !!
-        StrCount=StrCount+7;
+        OrderEdit.setText(""); // Восстановить !!
 
-        CreateNewInspection();
+
         GetInspectionListFromDB();
-        //AddTableRow("23444",4454, 234, StrCount);
         }
 
 
@@ -278,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
         );
 
         // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath();
+        //mCurrentPhotoPath = image.getAbsolutePath();
         return image;
     }
 

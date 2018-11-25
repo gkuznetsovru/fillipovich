@@ -27,7 +27,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="12dp"
             android:layout_marginEnd="8dp"
-            android:onClick="MyClick"
+            android:onClick="NewPhotoClick"
             android:text="@string/buttonHint"
             app:layout_constraintEnd_toEndOf="@+id/editText"
             app:layout_constraintHorizontal_bias="0.761"
