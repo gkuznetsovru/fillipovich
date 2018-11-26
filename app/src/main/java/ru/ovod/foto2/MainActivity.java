@@ -174,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
         String SQL = "SELECT " + DBHelper.INSPECTION_ID + " "
                     + " FROM " + DBHelper.INSPECTION + " where " + DBHelper.INSPECTION_NUMBER +" = '"+OrderEdit.getText().toString()+"'";
         Cursor cursor = database.rawQuery(SQL, null);
-        if (cursor != null) {
+        if (!cursor.isAfterLast()) {
             cursor.moveToFirst();
             //while (cursor.moveToNext()) {
             id = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ID));
@@ -197,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
         String SQL = "SELECT " + DBHelper.INSPECTION_ID + ", " + DBHelper.INSPECTION_NUMBER + ", "+ DBHelper.INSPECTION_ORDERID + " "
                 + " FROM " + DBHelper.INSPECTION + " Order by "+ DBHelper.INSPECTION_ID;
         Cursor cursor = database.rawQuery(SQL, null);
-        if (cursor != null) {
+        if (!cursor.isAfterLast()) {
             while (cursor.moveToNext()) {
                 String num = cursor.getString(cursor.getColumnIndex(DBHelper.INSPECTION_NUMBER));
                 Integer OrdID = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ORDERID));
