@@ -8,7 +8,7 @@ import android.util.Log;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    private static final int DB_VERSION = 1; // версия
+    private static final int DB_VERSION = 2; // версия
     private static final String DB_Name = "OvodOrders";  // имя локаьной базы данных
     private static final String TAGDB = "DATABASE_OPERATION";
 
@@ -43,6 +43,10 @@ public class DBHelper extends SQLiteOpenHelper {
 
         try {
 
+//            db.execSQL("drop table if exists " + INSPECTION);
+//            db.execSQL("drop table if exists " + PHOTO);
+
+
             String sql = "create table IF NOT EXISTS " + INSPECTION + "(" + INSPECTION_ID
                     + " integer primary key AUTOINCREMENT," + INSPECTION_NUMBER + " text," + INSPECTION_ORDERID + " integer," + INSPECTION_ISSYNC + " integer" + ")";
 
@@ -50,7 +54,7 @@ public class DBHelper extends SQLiteOpenHelper {
             db.execSQL(sql);
 
             sql = "create table IF NOT EXISTS " + PHOTO + "(" + PHOTO_ID
-                    + " integer primary key AUTOINCREMENT," + PHOTO_PATH + " text," + PHOTO_NAME + " text," + PHOTO_INSPECTION + " integer )";
+                    + " integer primary key AUTOINCREMENT," + PHOTO_PATH + " text," + PHOTO_NAME + " text," + PHOTO_ISSYNC + " integer," + PHOTO_INSPECTION + " integer )";
 
             Log.e(TAGDB, sql);
             db.execSQL(sql);
@@ -67,8 +71,8 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
-        //db.execSQL("drop table if exists " + INSPECTION);
-        //db.execSQL("drop table if exists " + PHOTO);
+        db.execSQL("drop table if exists " + INSPECTION);
+        db.execSQL("drop table if exists " + PHOTO);
 
         onCreate(db);
 

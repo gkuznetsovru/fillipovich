@@ -186,6 +186,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
+    // Фунция получает список Inspections из базу
+    public  void GetPhotoList() {
+
+        // очистикм tablelayout
+        tablelayout.removeAllViewsInLayout();
+
+        // получим из базы список Актов
+
+        String SQL = "SELECT " + DBHelper.PHOTO_ID + ", " + DBHelper.PHOTO_INSPECTION + ", "+ DBHelper.PHOTO_NAME
+                + " FROM " + DBHelper.PHOTO;
+        Cursor cursor = database.rawQuery(SQL, null);
+        if (!cursor.isAfterLast()) {
+            while (cursor.moveToNext()) {
+                String num = cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME));
+                Integer OrdID = 0;
+                Integer InsID = cursor.getInt(cursor.getColumnIndex(DBHelper.PHOTO_INSPECTION));
+                Integer Coun = cursor.getInt(cursor.getColumnIndex(DBHelper.PHOTO_ID));
+                AddTableRow(num,OrdID,InsID, Coun);
+                Log.e("DB ", "Извлекли INSPECTION_ID: " + InsID);
+            }
+        }
+        if (!cursor.isClosed()) {cursor.close();}
+        return;
+    }
+
+
     // Фунция получает список Inspections из базу
     public  void GetInspectionListFromDB() {
 
@@ -194,7 +221,9 @@ public class MainActivity extends AppCompatActivity {
 
         // получим из базы список Актов
 
-        String SQL = "SELECT " + DBHelper.INSPECTION_ID + ", " + DBHelper.INSPECTION_NUMBER + ", "+ DBHelper.INSPECTION_ORDERID + " "
+        String SQL = "SELECT " + DBHelper.INSPECTION_ID + ", " + DBHelper.INSPECTION_NUMBER + ", "+ DBHelper.INSPECTION_ORDERID + ", "
+                + " (SELECT count(*) from  "+ DBHelper.PHOTO + " where "+ DBHelper.PHOTO+"."+DBHelper.PHOTO_INSPECTION+" = " + DBHelper.INSPECTION+"."+DBHelper.INSPECTION_ID + ") as coun"
+               // + " 10 as coun"
                 + " FROM " + DBHelper.INSPECTION + " Order by "+ DBHelper.INSPECTION_ID;
         Cursor cursor = database.rawQuery(SQL, null);
         if (!cursor.isAfterLast()) {
@@ -202,7 +231,8 @@ public class MainActivity extends AppCompatActivity {
                 String num = cursor.getString(cursor.getColumnIndex(DBHelper.INSPECTION_NUMBER));
                 Integer OrdID = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ORDERID));
                 Integer InsID = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ID));
-                AddTableRow(num,OrdID,InsID,0);
+                Integer Coun = cursor.getInt(cursor.getColumnIndex("coun"));
+                AddTableRow(num,OrdID,InsID, Coun);
               Log.e("DB ", "Извлекли INSPECTION_ID: " + InsID);
             }
         }
@@ -288,6 +318,17 @@ public class MainActivity extends AppCompatActivity {
 
 
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+
+            // запишем информацию о фото в базу
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(DBHelper.PHOTO_PATH,  file.getPath().toString());
+            contentValues.put(DBHelper.PHOTO_NAME, file.getName().toString() );
+            contentValues.put(DBHelper.PHOTO_INSPECTION, InspectionID);
+            contentValues.put(DBHelper.PHOTO_ISSYNC, 0);
+            Long Inspect = database.insert(DBHelper.PHOTO, null, contentValues);
+            Integer id =  Inspect !=null ? Inspect.intValue() :null;
+            Log.e("ID добавленной фото:", InspectionID.toString());
+
             // Проверяем, содержит ли результат маленькую картинку
             if (data != null) {
                 if (data.hasExtra("data")) {
@@ -309,13 +350,17 @@ public class MainActivity extends AppCompatActivity {
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
+                imageFileName,
+                ".jpg",
+                storageDir
         );
 
         // Save a file: path for use with ACTION_VIEW intents
         //mCurrentPhotoPath = image.getAbsolutePath();
+
+
+
+
         return image;
     }
 
@@ -360,16 +405,6 @@ public class MainActivity extends AppCompatActivity {
         outputFileUri =  Uri.fromFile(file);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
         startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
-
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(DBHelper.PHOTO_PATH, file.getPath().toString());
-        contentValues.put(DBHelper.PHOTO_NAME, file.getName().toString());
-        contentValues.put(DBHelper.PHOTO_INSPECTION, InspectionID);
-        contentValues.put(DBHelper.PHOTO_ISSYNC, 0);
-        Long Inspect = database.insert(DBHelper.PHOTO, null, contentValues);
-        Integer id =  Inspect !=null ? Inspect.intValue() :null;
-        Log.e("ID добавленной фото:", InspectionID.toString());
-
 
     }
 
@@ -448,4 +483,11 @@ public class MainActivity extends AppCompatActivity {
         tablelayout.addView(tableRow);
     }
 
+    public void TextClick(View view) {
+        //database.execSQL( "drop table if exists " +  DBHelper.INSPECTION );
+        //database.execSQL( "drop table if exists " +  DBHelper.PHOTO );
+
+        showToast("Test.");
+        GetPhotoList();
+    }
 }
