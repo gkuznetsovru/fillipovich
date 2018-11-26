@@ -54,10 +54,10 @@ public class MainActivity extends AppCompatActivity {
     private EditText OrderEdit; //поле Edit с номером ЗН. Инициализируется OnCreate.
 
 
-    SQLiteDatabase database;
+    DBHelper dbhelper; // класс,  в котором задана структура нашей базы
+    SQLiteDatabase database;  // база данных - с ней работаем в данном классе
 
     private ImageView MyImage;
-//    private String mCurrentPhotoPath;
     private Uri photoURI;
     private Uri outputFileUri;
     private TextView filepath;
@@ -76,8 +76,6 @@ public class MainActivity extends AppCompatActivity {
 
     ProgressDialog dialog = null;
 
-    DBHelper dbhelper;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    // подцепим меню
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.mainmenu, menu);
@@ -137,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    // Функция клика по новой фото
     public void NewPhotoClick(View view) {
 
         if  (OrderEdit.getText().length() == 0) {  // Проверим, что ЗН выбран
@@ -187,14 +187,13 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    // Фунция получает список Inspections из базу
+    // Фунция получает список Inspections из базу и заполняете TableLayout
     public  void GetPhotoList() {
 
         // очистикм tablelayout
         tablelayout.removeAllViewsInLayout();
 
         // получим из базы список Актов
-
         String SQL = "SELECT " + DBHelper.PHOTO_ID + ", " + DBHelper.PHOTO_INSPECTION + ", "+ DBHelper.PHOTO_NAME
                 + " FROM " + DBHelper.PHOTO;
         Cursor cursor = database.rawQuery(SQL, null);
@@ -246,9 +245,9 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    // генерация случайной строки для имени файла
     public static final String DATA = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     public static Random RANDOM = new Random();
-
     public static String randomString(int len) {
             StringBuilder sb = new StringBuilder(len);
 
@@ -484,8 +483,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void TextClick(View view) {
-        //database.execSQL( "drop table if exists " +  DBHelper.INSPECTION );
-        //database.execSQL( "drop table if exists " +  DBHelper.PHOTO );
 
         showToast("Test.");
         GetPhotoList();
