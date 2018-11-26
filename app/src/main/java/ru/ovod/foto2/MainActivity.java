@@ -360,6 +360,17 @@ public class MainActivity extends AppCompatActivity {
         outputFileUri =  Uri.fromFile(file);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
         startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(DBHelper.PHOTO_PATH, file.getPath().toString());
+        contentValues.put(DBHelper.PHOTO_NAME, file.getName().toString());
+        contentValues.put(DBHelper.PHOTO_INSPECTION, InspectionID);
+        contentValues.put(DBHelper.PHOTO_ISSYNC, 0);
+        Long Inspect = database.insert(DBHelper.PHOTO, null, contentValues);
+        Integer id =  Inspect !=null ? Inspect.intValue() :null;
+        Log.e("ID добавленной фото:", InspectionID.toString());
+
+
     }
 
 
