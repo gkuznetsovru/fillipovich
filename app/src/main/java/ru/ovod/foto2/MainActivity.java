@@ -521,7 +521,7 @@ public class MainActivity extends AppCompatActivity {
         dataset.GetJSONFromWEB("select orderid, number, date, vin, model from TechnicalCentre.dbo.V_ActualOrderForOrderPhotos where number='"+OrderEdit.getText()+"'");
         if (dataset.RecordCount()>0)
         {
-            dataset.GetRowByNumber(1);
+            dataset.GetRowByNumber(0);
             OrderID = dataset.FieldByName_AsInteger("orderid");
             model.setText(dataset.FieldByName_AsString("model"));
             vin.setText(dataset.FieldByName_AsString("vin"));

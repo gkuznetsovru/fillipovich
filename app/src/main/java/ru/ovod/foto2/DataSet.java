@@ -13,6 +13,34 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
+
+
+/*
+JSON.php:
+
+<?php
+$SQL="select 'No SQL in post' as res ";
+if (!empty($_POST))
+{
+  $SQL=$_POST['SQL'];
+};
+include ('connectdb.php');
+global $DBH;
+$STH = $DBH->query($SQL);
+$STH->setFetchMode(PDO::FETCH_ASSOC);
+$data = array(); // в этот массив запишем то, что выберем из базы
+while($row = $STH->fetch()){ // оформим каждую строку результата
+                             // как ассоциативный массив
+    $data[] = $row; // допишем строку из выборки как новый элемент результирующего массива
+}
+echo json_encode($data);
+?>
+
+connectdb.php - это  библиотерка, инициализирующая подключение е базе MSSQL (инициализирует $DBH;)
+
+
+ */
+
 public class DataSet {
 
     // объявим адрес доступа к PHP json, который обрабатывае запросы
