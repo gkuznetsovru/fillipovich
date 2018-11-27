@@ -89,59 +89,6 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
 
-    // функция обрабатывает на сервере POST-запросы
-    // функция к SQLite не имеет никакого отношения, я суда просто поместеил универсальную функцию по работе с WEB-сервером
-    public  String postRequest( String mainUrl,HashMap<String,String> parameterList)
-    {
-        String response="";
-        try {
-            URL url = new URL(mainUrl);
-
-            StringBuilder postData = new StringBuilder();
-            for (Map.Entry<String, String> param : parameterList.entrySet())
-            {
-                if (postData.length() != 0) postData.append('&');
-                postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
-                postData.append('=');
-                postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
-            }
-
-            byte[] postDataBytes = postData.toString().getBytes("UTF-8");
-
-
-
-
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            conn.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
-            conn.setDoOutput(true);
-            conn.getOutputStream().write(postDataBytes);
-
-            Reader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-
-            StringBuilder sb = new StringBuilder();
-            for (int c; (c = in.read()) >= 0; )
-                sb.append((char) c);
-            response = sb.toString();
-
-
-            return  response;
-        }catch (Exception excep){
-            excep.printStackTrace();}
-        return response;
-    }
-
-
-    // функция возвращаю JSON результат по SQL-запросу
-    // функция к SQLite не имеет никакого отношения, я суда просто поместеил универсальную функцию по работе с WEB-сервером
-    public String GetJSONFromWEB(String sql) {
-        HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put("SQL", sql);
-        return postRequest("https://smit.ovod.ru/upload/json.php", hashMap);
-    }
-
-
     /*public void AddInspection(String num)
     {
         ContentValues contentValues = new ContentValues();

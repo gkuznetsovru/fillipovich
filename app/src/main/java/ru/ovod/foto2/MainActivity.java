@@ -93,7 +93,9 @@ public class MainActivity extends AppCompatActivity {
 
 
     DBHelper dbhelper; // класс,  в котором задана структура нашей базы
-    SQLiteDatabase database;  // база данных - с ней работаем в данном классе
+    SQLiteDatabase database;  // база данных SQLite - с ней работаем в данном классе
+    DataSet dataset = new DataSet(); // общий класс для доступа к базе овода
+
 
     private ImageView MyImage;
     private Uri photoURI;
@@ -574,35 +576,18 @@ public class MainActivity extends AppCompatActivity {
 
 
         String s = "";
-        s= dbhelper.GetJSONFromWEB("select orderid, number, date, vin, model from TechnicalCentre.dbo.V_ActualOrderForOrderPhotos");
+        dataset.GetJSONFromWEB("select orderid, number, date, vin, model from TechnicalCentre.dbo.V_ActualOrderForOrderPhotos");
 
-        JSONArray arr = null;
-        try {
-            arr = new JSONArray(s);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
 
         s ="";
 
-        for (int i = 0; i < arr.length(); i++) {
-            JSONObject c = null;
-            try {
-                c = arr.getJSONObject(i);
-            } catch (JSONException e) {
-                e.printStackTrace();
+        for (int i = 0; i < dataset.RecordCount() ; i++) {
+            if (dataset.GetRowByNumber(i))
+            {
+                s = s + '!' + dataset.FieldByName_AsInteger("orderid").toString();
             }
-            String id = null;
-            try {
-                id = c.getString("orderid");
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            s = s + '-' + id;
         }
-
-
-            tvWeb.setText(s);
+        tvWeb.setText(s);
 
         //GetPhotoList();
     }
