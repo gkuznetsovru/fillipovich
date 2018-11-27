@@ -20,13 +20,11 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TableLayout;
@@ -34,48 +32,16 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.message.BasicNameValuePair;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import android.util.Log;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.os.Bundle;
-import android.os.StrictMode;
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.view.Menu;
-import android.widget.TextView;
 
 
 import pub.devrel.easypermissions.EasyPermissions;
@@ -121,11 +87,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        MyImage=(android.widget.ImageView)findViewById(R.id.mImageView);
-        OrderEdit=(android.widget.EditText)findViewById(R.id.editText);
-        filepath=(android.widget.TextView)findViewById(R.id.filepath);
+        MyImage= findViewById(R.id.mImageView);
+        OrderEdit= findViewById(R.id.editText);
+        filepath= findViewById(R.id.filepath);
         path = Environment.getExternalStorageDirectory().toString();
-        tablelayout = (TableLayout)findViewById(R.id.tablelayout);
+        tablelayout = findViewById(R.id.tablelayout);
 
         verifyStoragePermissions(this);
         dbhelper = new DBHelper(getApplicationContext());
@@ -191,8 +157,7 @@ public class MainActivity extends AppCompatActivity {
         ConnectivityManager cm =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        if (netInfo != null && netInfo.isConnectedOrConnecting()) return true;
-        else return false;
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
     // Функция клика по новой фото
@@ -319,7 +284,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(EventModel event) throws ClassNotFoundException {
+    public void onEvent(EventModel event) {
         if (event.isTagMatchWith("response")) {
             String responseMessage = "Response from Server:\n" + event.getMessage();
             if (event.getMessage().contains("error"))
@@ -335,8 +300,8 @@ public class MainActivity extends AppCompatActivity {
                 {
                     filepath.append("Файл удалён:\n");
                     filepath.append(event.getMessage() + "\n");
-                };
-            };
+                }
+            }
         }
     }
 
@@ -379,8 +344,8 @@ public class MainActivity extends AppCompatActivity {
 
             // запишем информацию о фото в базу
             ContentValues contentValues = new ContentValues();
-            contentValues.put(DBHelper.PHOTO_PATH,  file.getPath().toString());
-            contentValues.put(DBHelper.PHOTO_NAME, file.getName().toString() );
+            contentValues.put(DBHelper.PHOTO_PATH, file.getPath());
+            contentValues.put(DBHelper.PHOTO_NAME, file.getName());
             contentValues.put(DBHelper.PHOTO_INSPECTION, InspectionID);
             contentValues.put(DBHelper.PHOTO_ISSYNC, 0);
             Long Inspect = database.insert(DBHelper.PHOTO, null, contentValues);
@@ -475,7 +440,7 @@ public class MainActivity extends AppCompatActivity {
         {
             showToast("Нет подключения к сети");
         return;
-        };
+        }
 
         filepath.setText("");
         //String path = Environment.getExternalStorageDirectory().toString();
@@ -492,7 +457,7 @@ public class MainActivity extends AppCompatActivity {
                 int age = 45; // сопроводительная информация - пока оставил, потом что-нибудь полезное передавать будем
                 ru.ovod.foto2.NetworkRelatedClass.NetworkCall.fileUpload(path+"/"+files[i].getName(), new ru.ovod.foto2.ModelClass.ImageSenderInfo(name, age));
                 //break;
-            };
+            }
         }
     }
 
@@ -509,6 +474,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    // проверим разрешения
     public static void verifyStoragePermissions(Activity activity) {
         // Check if we have write permission
         int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -546,36 +512,30 @@ public class MainActivity extends AppCompatActivity {
         tablelayout.addView(tableRow);
     }
 
+    // фунция ищет ЗН на сервере по номеру
+    public void GetOrderIdByNumber()
+    {
 
+        TextView model = findViewById(R.id.model);
+        TextView vin = findViewById(R.id.vin);
+        dataset.GetJSONFromWEB("select orderid, number, date, vin, model from TechnicalCentre.dbo.V_ActualOrderForOrderPhotos where number='"+OrderEdit.getText()+"'");
+        if (dataset.RecordCount()>0)
+        {
+            dataset.GetRowByNumber(1);
+            OrderID = dataset.FieldByName_AsInteger("orderid");
+            model.setText(dataset.FieldByName_AsString("model"));
+            vin.setText(dataset.FieldByName_AsString("vin"));
 
-
-    /*private String GetJSONFromWEB(String sql) throws JSONException {
-        HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put("SQL","select orderid, number, date, vin, model from TechnicalCentre.dbo.V_ActualOrderForOrderPhotos");
-        String JS=dbhelper.postRequest("https://smit.ovod.ru/upload/json.php",hashMap);
-
-
-        JSONArray arr = new JSONArray(JS);
-
-        String s = "";
-
-        for (int i = 0; i < arr.length(); i++) {
-            JSONObject c = arr.getJSONObject(i);
-            String id = c.getString("orderid");
-            s = s + '-' + id;
         }
-        return  s;
-
-    }*/
-
+    }
 
 
     public void TextClick(View view) {
 
-        TextView tvWeb = (TextView) this.findViewById(R.id.filepath);
+        TextView tvWeb = this.findViewById(R.id.filepath);
 
 
-        String s = "";
+     /*   String s = "";
         dataset.GetJSONFromWEB("select orderid, number, date, vin, model from TechnicalCentre.dbo.V_ActualOrderForOrderPhotos");
 
 
@@ -584,10 +544,13 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < dataset.RecordCount() ; i++) {
             if (dataset.GetRowByNumber(i))
             {
-                s = s + '!' + dataset.FieldByName_AsInteger("orderid").toString();
+                s = s + '!' + dataset.FieldByName_AsString("number").toString();
             }
         }
-        tvWeb.setText(s);
+        tvWeb.setText(s);*/
+
+
+        GetOrderIdByNumber();
 
         //GetPhotoList();
     }
