@@ -4,14 +4,18 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -30,15 +34,49 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.message.BasicNameValuePair;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import android.util.Log;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.os.Bundle;
+import android.os.StrictMode;
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.view.Menu;
+import android.widget.TextView;
+
 
 import pub.devrel.easypermissions.EasyPermissions;
 
@@ -91,6 +129,13 @@ public class MainActivity extends AppCompatActivity {
         dbhelper = new DBHelper(getApplicationContext());
         database = dbhelper.getWritableDatabase();
 
+        // Allow application use internet
+        if (android.os.Build.VERSION.SDK_INT > 9) {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+                    .permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+        }
+
     }
 
     // подцепим меню
@@ -135,6 +180,18 @@ public class MainActivity extends AppCompatActivity {
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, MainActivity.this);
     }
 
+    // проверка доступности сети
+    // ВНИМАНИЕ !!!
+    // проверка пока просто проверяет, есть сеть или нет.
+    // возможно, в будущем лучше будет доработать проверку доступности конкретного ресурса
+    // примеров полно: http://qaru.site/questions/13922/how-to-check-internet-access-on-android-inetaddress-never-times-out
+    public boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        if (netInfo != null && netInfo.isConnectedOrConnecting()) return true;
+        else return false;
+    }
 
     // Функция клика по новой фото
     public void NewPhotoClick(View view) {
@@ -365,7 +422,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    private void dispatchTakePictureIntent() {
+/*    private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
@@ -386,13 +443,13 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
         }
-    }
+    }*/
 
 
-    private void getThumbnailPicture() {
+/*    private void getThumbnailPicture() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
-    }
+    }*/
 
 
     private void saveFullImage(String fn) {
@@ -412,6 +469,11 @@ public class MainActivity extends AppCompatActivity {
     public void Sync(View view) {
 
         //filepath.setText(GetFileName());
+        if (!isOnline())
+        {
+            showToast("Нет подключения к сети");
+        return;
+        };
 
         filepath.setText("");
         //String path = Environment.getExternalStorageDirectory().toString();
@@ -482,9 +544,66 @@ public class MainActivity extends AppCompatActivity {
         tablelayout.addView(tableRow);
     }
 
+
+
+
+    /*private String GetJSONFromWEB(String sql) throws JSONException {
+        HashMap<String, String> hashMap = new HashMap<>();
+        hashMap.put("SQL","select orderid, number, date, vin, model from TechnicalCentre.dbo.V_ActualOrderForOrderPhotos");
+        String JS=dbhelper.postRequest("https://smit.ovod.ru/upload/json.php",hashMap);
+
+
+        JSONArray arr = new JSONArray(JS);
+
+        String s = "";
+
+        for (int i = 0; i < arr.length(); i++) {
+            JSONObject c = arr.getJSONObject(i);
+            String id = c.getString("orderid");
+            s = s + '-' + id;
+        }
+        return  s;
+
+    }*/
+
+
+
     public void TextClick(View view) {
 
-        showToast("Test.");
-        GetPhotoList();
+        TextView tvWeb = (TextView) this.findViewById(R.id.filepath);
+
+
+        String s = "";
+        s= dbhelper.GetJSONFromWEB("select orderid, number, date, vin, model from TechnicalCentre.dbo.V_ActualOrderForOrderPhotos");
+
+        JSONArray arr = null;
+        try {
+            arr = new JSONArray(s);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        s ="";
+
+        for (int i = 0; i < arr.length(); i++) {
+            JSONObject c = null;
+            try {
+                c = arr.getJSONObject(i);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            String id = null;
+            try {
+                id = c.getString("orderid");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            s = s + '-' + id;
+        }
+
+
+            tvWeb.setText(s);
+
+        //GetPhotoList();
     }
 }

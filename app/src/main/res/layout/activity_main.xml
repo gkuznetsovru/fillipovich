@@ -1,14 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
+    android:orientation="vertical"
     android:padding="@dimen/padding_small"
-    >
+    tools:context=".MainActivity">
 
-    <include layout="@layout/new_inspection" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="80pt">
+        <include layout="@layout/list_inspections" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <include layout="@layout/new_inspection" />
+
+    </RelativeLayout>
+
 
 </LinearLayout>
