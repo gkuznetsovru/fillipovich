@@ -47,6 +47,7 @@ public class DataSet {
     String url_for_web = "https://smit.ovod.ru/upload/json.php";
 
     // результат выборки с сервера в формате JSONArray
+    // нумерация начинается с нуля !
     JSONArray data = null;
 
     // Текущая строка. Использует для функции FieldByName

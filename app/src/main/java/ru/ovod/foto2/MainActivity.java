@@ -516,6 +516,7 @@ public class MainActivity extends AppCompatActivity {
     public void GetOrderIdByNumber()
     {
 
+        if (!isOnline()) {return;} // если не в сети, от не получаем инфу с сервера
         TextView model = findViewById(R.id.model);
         TextView vin = findViewById(R.id.vin);
         dataset.GetJSONFromWEB("select orderid, number, date, vin, model from TechnicalCentre.dbo.V_ActualOrderForOrderPhotos where number='"+OrderEdit.getText()+"'");
