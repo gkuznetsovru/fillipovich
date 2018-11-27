@@ -169,12 +169,19 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (InspectionID_Number!=OrderEdit.getText().toString()) { // если предыдущий номер ЗН для сканирования был другой
+            OrderID=0; // сразу сбросим OrderID
             InspectionID = GetInspectionIDByNumber(); // поищем тот что вбил мастер
+            if (OrderID==0) // если OкderID не определён, то поищем его по номеру ЗН в БД Овода (если доступна база)
+            {
+                GetOrderIdByNumber(OrderEdit.getText().toString());
+            }
+
             if (InspectionID == 0) {  // Если 0, то  сгенерим новый
                 InspectionID = CreateNewInspection();
             }
-            InspectionID_Number = OrderEdit.getText().toString();
+            InspectionID_Number = OrderEdit.getText().toString();  // запомним текущий номер ЗН
         }
+
         saveFullImage(GetFileName());
     }
 
@@ -183,6 +190,13 @@ public class MainActivity extends AppCompatActivity {
     public  Integer CreateNewInspection() {
             ContentValues contentValues = new ContentValues();
             contentValues.put(DBHelper.INSPECTION_NUMBER, OrderEdit.getText().toString());
+            if (OrderID>0)  // если известен номер ЗН
+            {
+                if (OrderID>0)  // то его тоже запишем в базу
+                {
+                    contentValues.put(DBHelper.INSPECTION_ORDERID, OrderID.toString());
+                }
+            }
             Long Inspect = database.insert(DBHelper.INSPECTION, null, contentValues);
             Integer id =  Inspect !=null ? Inspect.intValue() :null;
             Log.e("ID", InspectionID.toString());
@@ -195,13 +209,14 @@ public class MainActivity extends AppCompatActivity {
         //return 0;
         Integer id=0;
     //    String SQL = "SELECT " + DBHelper.INSPECTION_ID + " " + " FROM " + DBHelper.INSPECTION;
-        String SQL = "SELECT " + DBHelper.INSPECTION_ID + " "
+        String SQL = "SELECT " + DBHelper.INSPECTION_ID + ", " + DBHelper.INSPECTION_ORDERID + " "
                     + " FROM " + DBHelper.INSPECTION + " where " + DBHelper.INSPECTION_NUMBER +" = '"+OrderEdit.getText().toString()+"'";
         Cursor cursor = database.rawQuery(SQL, null);
         if (!cursor.isAfterLast()) {
             cursor.moveToFirst();
             //while (cursor.moveToNext()) {
             id = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ID));
+            OrderID = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ORDERID));
             Log.e("DB ", "Извлекли INSPECTION_ID: " + id);
             //}
         }
