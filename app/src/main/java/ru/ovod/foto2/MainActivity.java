@@ -10,6 +10,8 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -27,10 +29,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
+
+
+import android.util.Log;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -80,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
     private TableLayout tablelayout;
+    private TableLayout photoLayout;
 
     ProgressDialog dialog = null;
 
@@ -93,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
         filepath= findViewById(R.id.filepath);
         path = Environment.getExternalStorageDirectory().toString();
         tablelayout = findViewById(R.id.tablelayout);
+        photoLayout = findViewById(R.id.phototablelayout);
 
         verifyStoragePermissions(this);
         dbhelper = new DBHelper(getApplicationContext());
@@ -184,6 +193,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         saveFullImage(GetFileName());
+        GetPhotoList();
     }
 
 
@@ -230,21 +240,23 @@ public class MainActivity extends AppCompatActivity {
     // Фунция получает список Inspections из базу и заполняете TableLayout
     public  void GetPhotoList() {
 
+        // проверим, что выбран (определён) акт осомотра
+        if (!CheckInspectionId()) {return;}
+
         // очистикм tablelayout
-        tablelayout.removeAllViewsInLayout();
+        photoLayout.removeAllViewsInLayout();
 
         // получим из базы список Актов
         String SQL = "SELECT " + DBHelper.PHOTO_ID + ", " + DBHelper.PHOTO_INSPECTION + ", "+ DBHelper.PHOTO_NAME
-                + " FROM " + DBHelper.PHOTO;
+                + " FROM " + DBHelper.PHOTO + " where " + DBHelper.PHOTO_INSPECTION + "="+InspectionID.toString();
+
         Cursor cursor = database.rawQuery(SQL, null);
         if (!cursor.isAfterLast()) {
             while (cursor.moveToNext()) {
-                String num = cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME));
-                Integer OrdID = 0;
-                Integer InsID = cursor.getInt(cursor.getColumnIndex(DBHelper.PHOTO_INSPECTION));
-                Integer Coun = cursor.getInt(cursor.getColumnIndex(DBHelper.PHOTO_ID));
-                AddTableRow(num,OrdID,InsID, Coun);
-                Log.e("DB ", "Извлекли INSPECTION_ID: " + InsID);
+                Integer PhoID = cursor.getInt(cursor.getColumnIndex(DBHelper.PHOTO_ID));
+                String PhoNa = cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME));
+                AddTableRowPhoto(PhoNa,PhoID);
+                Log.e("DB ", "Добавилили фото в список: " + PhoNa);
             }
         }
         if (!cursor.isClosed()) {cursor.close();}
@@ -456,7 +468,17 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public Boolean CheckInspectionId() {
 
+        if (InspectionID == 0) {
+            InspectionID = GetInspectionIDByNumber(); // поищем тот что вбил мастер
+            if (InspectionID == 0) {
+                showToast("Не найден акт осмотра");
+                return Boolean.FALSE;
+            }
+        }
+        return Boolean.TRUE;
+    }
 
     public void Sync(View view) {
 
@@ -467,16 +489,8 @@ public class MainActivity extends AppCompatActivity {
         return;
         }
 
-        // проверим, что выбран консретный акт
-        if (InspectionID==0)
-        {
-            InspectionID = GetInspectionIDByNumber(); // поищем тот что вбил мастер
-            if (InspectionID==0)
-            {
-                showToast("Не найден акт осмотра");
-                return;
-            }
-        }
+        // проверим, что выбран коррретный акт
+        if (!CheckInspectionId()) {return;}
 
 
         if (OrderID==0) {
@@ -584,17 +598,7 @@ public class MainActivity extends AppCompatActivity {
                                                 }
                                             }
                                             SetInspectionId((Integer) v.getTag());
-                /*                v.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
-                showToast(v.getTag().toString() );
-                try {
-                    if (!SelectedTableRow.equals((TableRow) v)) {
-                        //SelectedTableRow.setBackgroundColor(v.getResources().getColor(R.color.colorPrimary));
-                        SelectedTableRow.setBackgroundColor(android.R.color.holo_orange_light);
-                        SelectedTableRow = (TableRow) v;
-                    }
-                }
-                catch(Exception e) { }
-            }*/
+                                            GetPhotoList();
                                         }
                                     });
 
@@ -604,11 +608,99 @@ public class MainActivity extends AppCompatActivity {
         tablelayout.addView(tableRow);
     }
 
-    // фунция ищет ЗН на сервере по номеру
+
+
+    // функция сжатия изображения из примера  https://startandroid.ru/ru/uroki/vse-uroki-spiskom/372-urok-160-risovanie-bitmap-chtenie-izobrazhenij-bolshogo-razmera.html
+    public static Bitmap decodeSampledBitmapFromResource(String path,
+                                                         int reqWidth, int reqHeight) {
+
+        // Читаем с inJustDecodeBounds=true для определения размеров
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(path, options);
+
+        // Вычисляем inSampleSize
+        options.inSampleSize = calculateInSampleSize(options, reqWidth,
+                reqHeight);
+
+        // Читаем с использованием inSampleSize коэффициента
+        options.inJustDecodeBounds = false;
+        return BitmapFactory.decodeFile(path, options);
+    }
+
+    // функция сжатия изображения из примера  https://startandroid.ru/ru/uroki/vse-uroki-spiskom/372-urok-160-risovanie-bitmap-chtenie-izobrazhenij-bolshogo-razmera.html
+    public static int calculateInSampleSize(BitmapFactory.Options options,
+                                            int reqWidth, int reqHeight) {
+        // Реальные размеры изображения
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Вычисляем наибольший inSampleSize, который будет кратным двум
+            // и оставит полученные размеры больше, чем требуемые
+            while ((halfHeight / inSampleSize) > reqHeight
+                    && (halfWidth / inSampleSize) > reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
+    }
+
+
+    // функция доабвление строки с картинкой
+    private void  AddTableRowPhoto(String photo, Integer photoid)
+    {
+
+        ImageView im= new ImageView(this);
+
+
+        int px = 85;
+        File file = new File(path,photo);
+        Bitmap bitmap = decodeSampledBitmapFromResource(file.getAbsolutePath(), px, px);
+        Log.d("log", String.format("Required size = %s, bitmap size = %sx%s, byteCount = %s",
+                px, bitmap.getWidth(), bitmap.getHeight(), bitmap.getByteCount()));
+        im.setImageBitmap(bitmap);
+
+        TableRow tableRow = new TableRow(this);
+        tableRow.addView(im);
+        tableRow.setTag(photoid);
+       /* tableRow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+                for (int i = 0; i < tablelayout.getChildCount(); i++) {
+                    View row = tablelayout.getChildAt(i);
+                    if (row == v) {
+                        row.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
+                    } else {
+                        //Change this to your normal background color.
+                        row.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+                    }
+                }
+                SetInspectionId((Integer) v.getTag());
+            }
+        });*/
+
+
+        tableRow.setPadding(2,2,2,2);
+        photoLayout.addView(tableRow);
+    }
+
+
+
+
+    // фунция ищет ЗН на сервере Овода по номеру
     public void GetOrderIdByNumber()
     {
 
-        if (!isOnline()) {return;} // если не в сети, от не получаем инфу с сервера
+        if (!isOnline()) {return;} // если не в сети, то не получаем инфу с сервера
         TextView model = findViewById(R.id.model);
         TextView vin = findViewById(R.id.vin);
         dataset.GetJSONFromWEB("select orderid, number, date, vin, model from TechnicalCentre.dbo.V_ActualOrderForOrderPhotos with(NoLock) where number='"+OrderEdit.getText()+"'");
@@ -642,6 +734,7 @@ public class MainActivity extends AppCompatActivity {
         if (!cursor.isClosed()) {cursor.close();}
     }
 
+    // клик для кнопки поиска
     public void SearchClick(View view) {
         GetOrderIdByNumber();
     }

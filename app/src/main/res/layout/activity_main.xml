@@ -23,5 +23,13 @@
 
     </RelativeLayout>
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="90pt"
+        android:id="@+id/photolayout"
+        >
+        <include layout="@layout/list_photo" />
+
+    </RelativeLayout>
 
 </LinearLayout>

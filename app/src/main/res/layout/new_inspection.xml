@@ -6,8 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context=".MainActivity"
-    tools:showIn="@layout/activity_main">
+    tools:context=".MainActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -75,8 +74,8 @@
 
             <TextView
                 android:id="@+id/model"
-                android:layout_width="301dp"
-                android:layout_height="19dp"
+                android:layout_width="263dp"
+                android:layout_height="17dp"
                 android:layout_marginStart="8dp"
                 android:text="Модель"
                 android:textColor="@color/colorAccent"
@@ -86,8 +85,8 @@
 
             <TextView
                 android:id="@+id/vin"
-                android:layout_width="301dp"
-                android:layout_height="17dp"
+                android:layout_width="262dp"
+                android:layout_height="19dp"
                 android:text="VIN"
                 android:textColor="@color/colorAccent"
                 android:textStyle="bold"
