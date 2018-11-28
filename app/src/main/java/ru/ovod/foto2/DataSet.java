@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-
+// пример PHP, который обарабатывает запросы
 /*
 JSON.php:
 

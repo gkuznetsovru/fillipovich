@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView filepath;
     private File file;
     private String path;
+    private TableRow SelectedTableRow;
 
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
@@ -495,8 +496,8 @@ public class MainActivity extends AppCompatActivity {
         if (!cursor.isAfterLast()) {
             while (cursor.moveToNext()) {
                 // отправка файла
-                ru.ovod.foto2.NetworkRelatedClass.NetworkCall.fileUpload(path+"/"+cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)).toString(), new ru.ovod.foto2.ModelClass.ImageSenderInfo(OrderID.toString(), OrderEdit.getText().toString() ));
                 Log.e("DB ", "Начали отправку файла: " + cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)).toString() );
+                ru.ovod.foto2.NetworkRelatedClass.NetworkCall.fileUpload(path+"/"+cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)).toString(), new ru.ovod.foto2.ModelClass.ImageSenderInfo(OrderID.toString(), OrderEdit.getText().toString() ));
             }
         }
         if (!cursor.isClosed()) {cursor.close();}
@@ -563,7 +564,42 @@ public class MainActivity extends AppCompatActivity {
         tableRow.addView(col1);
         tableRow.addView(col2);
         tableRow.addView(col3);
-        tableRow.setPadding(5,7,5,7);
+
+        tableRow.setTag(inspectid);
+
+        //tableRow.setTag(inspectid, tableRow);
+
+        tableRow.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+
+
+                                            for (int i = 0; i < tablelayout.getChildCount(); i++) {
+                                                View row = tablelayout.getChildAt(i);
+                                                if (row == v) {
+                                                    row.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
+                                                } else {
+                                                    //Change this to your normal background color.
+                                                    row.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+                                                }
+                                            }
+                                            SetInspectionId((Integer) v.getTag());
+                /*                v.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
+                showToast(v.getTag().toString() );
+                try {
+                    if (!SelectedTableRow.equals((TableRow) v)) {
+                        //SelectedTableRow.setBackgroundColor(v.getResources().getColor(R.color.colorPrimary));
+                        SelectedTableRow.setBackgroundColor(android.R.color.holo_orange_light);
+                        SelectedTableRow = (TableRow) v;
+                    }
+                }
+                catch(Exception e) { }
+            }*/
+                                        }
+                                    });
+
+
+        tableRow.setPadding(5,9,5,9);
 
         tablelayout.addView(tableRow);
     }
@@ -588,28 +624,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void TextClick(View view) {
+    // функция устанавливает InspectionId (излекает данные из базы)
+    public void SetInspectionId (Integer InsID)
+    {
+        InspectionID = InsID;
 
-        TextView tvWeb = this.findViewById(R.id.filepath);
-
-
-     /*   String s = "";
-        dataset.GetJSONFromWEB("select orderid, number, date, vin, model from TechnicalCentre.dbo.V_ActualOrderForOrderPhotos");
-
-
-        s ="";
-
-        for (int i = 0; i < dataset.RecordCount() ; i++) {
-            if (dataset.GetRowByNumber(i))
-            {
-                s = s + '!' + dataset.FieldByName_AsString("number").toString();
-            }
+        String SQL = "SELECT " + DBHelper.INSPECTION_NUMBER + ", " + DBHelper.INSPECTION_ORDERID + " "
+                + " FROM " + DBHelper.INSPECTION + " where " + DBHelper.INSPECTION_ID +" = "+InspectionID.toString()+" ";
+        Cursor cursor = database.rawQuery(SQL, null);
+        if (!cursor.isAfterLast()) {
+            cursor.moveToFirst();
+            OrderID = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ORDERID));
+            OrderEdit.setText( cursor.getString(cursor.getColumnIndex(DBHelper.INSPECTION_NUMBER)));
+            InspectionID_Number=OrderEdit.getText().toString();
+            Log.e("DB ", "Извлекли  данные по INSPECTION_ID: " + InspectionID.toString());
         }
-        tvWeb.setText(s);*/
+        if (!cursor.isClosed()) {cursor.close();}
+    }
 
-
+    public void SearchClick(View view) {
         GetOrderIdByNumber();
-
-        //GetPhotoList();
     }
 }
