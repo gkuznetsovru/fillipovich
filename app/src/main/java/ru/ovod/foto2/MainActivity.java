@@ -173,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
             InspectionID = GetInspectionIDByNumber(); // поищем тот что вбил мастер
             if (OrderID==0) // если OкderID не определён, то поищем его по номеру ЗН в БД Овода (если доступна база)
             {
-                GetOrderIdByNumber(OrderEdit.getText().toString());
+                GetOrderIdByNumber();
             }
 
             if (InspectionID == 0) {  // Если 0, то  сгенерим новый
@@ -260,7 +260,8 @@ public class MainActivity extends AppCompatActivity {
         // получим из базы список Актов
 
         String SQL = "SELECT " + DBHelper.INSPECTION_ID + ", " + DBHelper.INSPECTION_NUMBER + ", "+ DBHelper.INSPECTION_ORDERID + ", "
-                + " (SELECT count(*) from  "+ DBHelper.PHOTO + " where "+ DBHelper.PHOTO+"."+DBHelper.PHOTO_INSPECTION+" = " + DBHelper.INSPECTION+"."+DBHelper.INSPECTION_ID + ") as coun"
+                + " (SELECT count(*) from  "+ DBHelper.PHOTO + " where "+DBHelper.PHOTO_ISSYNC+"=0 and "
+                + DBHelper.PHOTO+"."+DBHelper.PHOTO_INSPECTION+" = " + DBHelper.INSPECTION+"."+DBHelper.INSPECTION_ID + ") as coun"
                // + " 10 as coun"
                 + " FROM " + DBHelper.INSPECTION + " Order by "+ DBHelper.INSPECTION_ID;
         Cursor cursor = database.rawQuery(SQL, null);
@@ -311,10 +312,18 @@ public class MainActivity extends AppCompatActivity {
                 filepath.append(event.getMessage() + "\n");
                 File file = new File(path+"/"+event.getMessage());
                 Boolean b = file.delete();
+                //Boolean b = Boolean.TRUE;
                 if (b)
                 {
                     filepath.append("Файл удалён:\n");
                     filepath.append(event.getMessage() + "\n");
+
+                    // пометим в базе, что файл сихронизирован
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put(DBHelper.PHOTO_ISSYNC, 1);
+                    int Inspect = database.update(DBHelper.PHOTO, contentValues, DBHelper.PHOTO_NAME+"=?", new String[] { event.getMessage() });
+                    Log.e("Фото сихронизированно в базе:", event.getMessage() );
+
                 }
             }
         }
@@ -457,9 +466,43 @@ public class MainActivity extends AppCompatActivity {
         return;
         }
 
-        filepath.setText("");
-        //String path = Environment.getExternalStorageDirectory().toString();
-        //filepath.append("Path: " + path+"\n" );
+        // проверим, что выбран консретный акт
+        if (InspectionID==0)
+        {
+            InspectionID = GetInspectionIDByNumber(); // поищем тот что вбил мастер
+            if (InspectionID==0)
+            {
+                showToast("Не найден акт осмотра");
+                return;
+            }
+        }
+
+
+        if (OrderID==0) {
+            GetOrderIdByNumber(); // получим Order Id
+        }
+
+        if (OrderID==0)
+        {
+            showToast("Не найден заказ-наряд с указанным номером в базе Овода");
+            return;
+        }
+
+
+        String SQL = "SELECT " + DBHelper.PHOTO_ID + ", " + DBHelper.PHOTO_INSPECTION + ", "+ DBHelper.PHOTO_NAME
+                + " FROM " + DBHelper.PHOTO + " WHERE " +DBHelper.PHOTO_ISSYNC+"=0 and " + DBHelper.PHOTO_INSPECTION +"=" + InspectionID.toString()  ;
+        Cursor cursor = database.rawQuery(SQL, null);
+        if (!cursor.isAfterLast()) {
+            while (cursor.moveToNext()) {
+                // отправка файла
+                ru.ovod.foto2.NetworkRelatedClass.NetworkCall.fileUpload(path+"/"+cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)).toString(), new ru.ovod.foto2.ModelClass.ImageSenderInfo(OrderID.toString(), OrderEdit.getText().toString() ));
+                Log.e("DB ", "Начали отправку файла: " + cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)).toString() );
+            }
+        }
+        if (!cursor.isClosed()) {cursor.close();}
+
+/*        filepath.setText("");
+
         File directory = new File(path);
         File[] files = directory.listFiles();
         //filepath.append("Size: "+ files.length+"\n" );
@@ -468,12 +511,10 @@ public class MainActivity extends AppCompatActivity {
             if (files[i].getName().contains("jpg")) {
                 filepath.append("Начало отправки файла:\n");
                 filepath.append(files[i].getName() + "\n");
-                String name = "gfdgfd"; // сопроводительная информация - пока оставил, потом что-нибудь полезное передавать будем
-                int age = 45; // сопроводительная информация - пока оставил, потом что-нибудь полезное передавать будем
-                ru.ovod.foto2.NetworkRelatedClass.NetworkCall.fileUpload(path+"/"+files[i].getName(), new ru.ovod.foto2.ModelClass.ImageSenderInfo(name, age));
+                ru.ovod.foto2.NetworkRelatedClass.NetworkCall.fileUpload(path+"/"+files[i].getName(), new ru.ovod.foto2.ModelClass.ImageSenderInfo(OrderID.toString(), OrderEdit.getText().toString() ));
                 //break;
             }
-        }
+        }*/
     }
 
     @Override
@@ -534,7 +575,7 @@ public class MainActivity extends AppCompatActivity {
         if (!isOnline()) {return;} // если не в сети, от не получаем инфу с сервера
         TextView model = findViewById(R.id.model);
         TextView vin = findViewById(R.id.vin);
-        dataset.GetJSONFromWEB("select orderid, number, date, vin, model from TechnicalCentre.dbo.V_ActualOrderForOrderPhotos where number='"+OrderEdit.getText()+"'");
+        dataset.GetJSONFromWEB("select orderid, number, date, vin, model from TechnicalCentre.dbo.V_ActualOrderForOrderPhotos with(NoLock) where number='"+OrderEdit.getText()+"'");
         if (dataset.RecordCount()>0)
         {
             dataset.GetRowByNumber(0);
@@ -543,6 +584,7 @@ public class MainActivity extends AppCompatActivity {
             vin.setText(dataset.FieldByName_AsString("vin"));
 
         }
+
     }
 
 

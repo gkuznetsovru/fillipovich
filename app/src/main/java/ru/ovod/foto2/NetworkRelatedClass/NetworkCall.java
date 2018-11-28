@@ -1,6 +1,7 @@
 package ru.ovod.foto2.NetworkRelatedClass;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import ru.ovod.foto2.ModelClass.EventModel;
@@ -36,6 +37,7 @@ public class NetworkCall {
 
         Gson gson = new Gson();
         String patientData = gson.toJson(imageSenderInfo);
+        Log.e("JSON toSend:", patientData);
 
         RequestBody description = RequestBody.create(okhttp3.MultipartBody.FORM, patientData);
 
