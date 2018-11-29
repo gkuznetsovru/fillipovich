@@ -17,4 +17,5 @@
     <string name="uploadtestbutton">Upload</string>
     <string name="modelbaseline">Модель</string>
     <string name="vinbaseline">VIN</string>
+    <string name="title_activity_select_order">Выберите ЗН</string>
 </resources>

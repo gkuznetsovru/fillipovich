@@ -741,6 +741,20 @@ public class MainActivity extends AppCompatActivity {
 
     // клик для кнопки поиска
     public void SearchClick(View view) {
+
+        if (!isOnline())  // если не в сети, то не получаем инфу с сервера
+        {
+            showToast("Нет подключения к сети.");
+            return;
+        }
+
+        if (InspectionID==0)  // если нет записи в базе с InspectionID (нет ни одной фото)
+        {
+            showToast("Не выбран акт осмотра (или нет фотографий).");
+            return;
+        }
+
+
         // зачистим перменны перед поискао
         OrderID=0;
         model.setText(getString(R.string.modelbaseline));
@@ -748,9 +762,13 @@ public class MainActivity extends AppCompatActivity {
 
         GetOrderIdByNumber(); // ищем данные по нммеру акта
 
-        if (OrderID==0)
+        if (OrderID==0) // если ЗН не обнаружен
         {
-            showToast("Не найден заказ-наряд с таким номером на сервере");
+            // то запросим у менеджера выбор ЗН
+            Intent intent = new Intent(MainActivity.this,  SelectOrderActivity.class );
+            startActivity(intent);
+
+            //showToast("Не найден заказ-наряд с таким номером на сервере");
         }
     }
 }
