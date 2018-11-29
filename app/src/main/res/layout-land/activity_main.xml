@@ -31,7 +31,8 @@
         android:layout_width="105dp"
         android:layout_height="match_parent"
         android:gravity="right"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:visibility="invisible">
 
         <include layout="@layout/list_photo" />
 

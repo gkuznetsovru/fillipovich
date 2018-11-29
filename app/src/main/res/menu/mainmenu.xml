@@ -9,6 +9,7 @@
         app:showAsAction="never"/>
     <item android:title="@string/Menu_OrdersFromServer"
         android:id="@+id/Menu_OrdersFromServer"
+        android:visible="false"
         app:showAsAction="never"/>
     <item android:title="@string/Menu_Settings"
         android:id="@+id/Menu_Settings"

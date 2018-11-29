@@ -78,6 +78,9 @@ public class MainActivity extends AppCompatActivity {
     private String path;
     private TableRow SelectedTableRow;
 
+    TextView model;
+    TextView vin;
+
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
@@ -106,6 +109,9 @@ public class MainActivity extends AppCompatActivity {
         verifyStoragePermissions(this);
         dbhelper = new DBHelper(getApplicationContext());
         database = dbhelper.getWritableDatabase();
+
+        model = findViewById(R.id.model);
+        vin = findViewById(R.id.vin);
 
         // Allow application use internet
         if (android.os.Build.VERSION.SDK_INT > 9) {
@@ -182,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
             OrderID=0; // сразу сбросим OrderID
             InspectionID = GetInspectionIDByNumber(); // поищем тот что вбил мастер
 
-            // Пока отключил проверку OrderId, чтоб время не терять
+            // Пока отключил проверку OrderId, чтоб время не терять на проверказ. Не знаю, верно это или нет
             //if (OrderID==0) // если OкderID не определён, то поищем его по номеру ЗН в БД Овода (если доступна база)
             //{
             //    GetOrderIdByNumber();
@@ -294,8 +300,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void NewOrder(View view) {
-        OrderEdit.setText(""); // Восстановить !!
-        }
+        OrderEdit.setText("");
+        InspectionID=0;
+        OrderID=0;
+        InspectionID_Number="";
+
+        model.setText(getString(R.string.modelbaseline));
+        vin.setText(getString(R.string.vinbaseline));
+    }
 
 
 
@@ -424,37 +436,6 @@ public class MainActivity extends AppCompatActivity {
 
         return image;
     }
-
-
-
-/*    private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        // Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            // Create the File where the photo should go
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                // Error occurred while creating the File
-                Toast.makeText(this, "Error!", Toast.LENGTH_SHORT).show();
-            }
-            // Continue only if the File was successfully created
-            if (photoFile != null) {
-                photoURI = FileProvider.getUriForFile(this,
-                        "com.example.android.provider",
-                        photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-            }
-        }
-    }*/
-
-
-/*    private void getThumbnailPicture() {
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
-    }*/
 
 
     private void saveFullImage(String fn) {
@@ -599,7 +580,10 @@ public class MainActivity extends AppCompatActivity {
                                                 }
                                             }
                                             SetInspectionId((Integer) v.getTag());
-                                            GetPhotoList();
+                                            // GetPhotoList(); // !!! Внимание ! Временно отключил формирвоание списка, чтоб быстрее работало. готовлю демо-версию к запуску
+
+
+
                                         }
                                     });
 
@@ -704,8 +688,6 @@ public class MainActivity extends AppCompatActivity {
     {
 
         if (!isOnline()) {return;} // если не в сети, то не получаем инфу с сервера
-        TextView model = findViewById(R.id.model);
-        TextView vin = findViewById(R.id.vin);
         dataset.GetJSONFromWEB("select orderid, number, date, vin, model from TechnicalCentre.dbo.V_ActualOrderForOrderPhotos with(NoLock) where number='"+OrderEdit.getText()+"'");
         if (dataset.RecordCount()>0)
         {

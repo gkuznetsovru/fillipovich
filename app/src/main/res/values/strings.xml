@@ -14,4 +14,7 @@
     <string name="title_activity_settings">activity_settings</string>
     <string name="action_settings">Settings</string>
     <string name="ListPhoto">  Фото:</string>
+    <string name="uploadtestbutton">Upload</string>
+    <string name="modelbaseline">Модель</string>
+    <string name="vinbaseline">VIN</string>
 </resources>
