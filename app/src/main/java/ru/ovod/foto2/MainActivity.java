@@ -181,10 +181,12 @@ public class MainActivity extends AppCompatActivity {
         if (InspectionID_Number!=OrderEdit.getText().toString()) { // если предыдущий номер ЗН для сканирования был другой
             OrderID=0; // сразу сбросим OrderID
             InspectionID = GetInspectionIDByNumber(); // поищем тот что вбил мастер
-            if (OrderID==0) // если OкderID не определён, то поищем его по номеру ЗН в БД Овода (если доступна база)
-            {
-                GetOrderIdByNumber();
-            }
+
+            // Пока отключил проверку OrderId, чтоб время не терять
+            //if (OrderID==0) // если OкderID не определён, то поищем его по номеру ЗН в БД Овода (если доступна база)
+            //{
+            //    GetOrderIdByNumber();
+            //}
 
             if (InspectionID == 0) {  // Если 0, то  сгенерим новый
                 InspectionID = CreateNewInspection();
@@ -193,7 +195,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         saveFullImage(GetFileName());
-        GetPhotoList();
     }
 
 
@@ -632,8 +633,10 @@ public class MainActivity extends AppCompatActivity {
     public static int calculateInSampleSize(BitmapFactory.Options options,
                                             int reqWidth, int reqHeight) {
         // Реальные размеры изображения
-        final int height = options.outHeight;
-        final int width = options.outWidth;
+
+        int height =  options.outHeight;
+        int width = options.outWidth;
+
         int inSampleSize = 1;
 
         if (height > reqHeight || width > reqWidth) {

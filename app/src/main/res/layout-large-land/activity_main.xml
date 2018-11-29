@@ -11,26 +11,28 @@
     <LinearLayout
         android:layout_width="246dp"
         android:layout_height="match_parent"
-        android:gravity="left"
+        android:gravity="start"
         android:orientation="vertical">
 
         <include layout="@layout/list_inspections" />
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="320dp"
+        android:layout_width="600dp"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <include layout="@layout/new_inspection" />
+        <include
+            layout="@layout/new_inspection"
+            android:layout_gravity="fill_horizontal" />
 
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/photolayout"
-        android:layout_width="105dp"
+        android:layout_width="155dp"
         android:layout_height="match_parent"
-        android:gravity="right"
+        android:gravity="end"
         android:orientation="vertical">
 
         <include layout="@layout/list_photo" />
