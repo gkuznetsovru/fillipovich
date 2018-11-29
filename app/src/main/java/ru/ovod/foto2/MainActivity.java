@@ -23,6 +23,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -73,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView MyImage;
     private Uri photoURI;
     private Uri outputFileUri;
-    private TextView filepath;
+    private TextView operationlog;
     private File file;
     private String path;
     private TableRow SelectedTableRow;
@@ -98,10 +99,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // инициализируем все наши переменные
         setContentView(R.layout.activity_main);
         MyImage= findViewById(R.id.mImageView);
         OrderEdit= findViewById(R.id.editText);
-        filepath= findViewById(R.id.filepath);
+        operationlog= findViewById(R.id.filepath);
         path = Environment.getExternalStorageDirectory().toString();
         tablelayout = findViewById(R.id.tablelayout);
         photoLayout = findViewById(R.id.phototablelayout);
@@ -112,6 +115,8 @@ public class MainActivity extends AppCompatActivity {
 
         model = findViewById(R.id.model);
         vin = findViewById(R.id.vin);
+
+        GetInspectionListFromDB(); // получим список актов из локальной БД
 
         // Allow application use internet
         if (android.os.Build.VERSION.SDK_INT > 9) {
@@ -138,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
         // Операции для выбранного пункта меню
         switch (id) {
             case R.id.Menu_ListInspections:
-                SetListInspection();
+                GetInspectionListFromDB();
                 return true;
             case R.id.Menu_OrdersFromServer:
               // infoTextView.setText("Вы выбрали кошку!");
@@ -151,11 +156,6 @@ public class MainActivity extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
-
-    private void SetListInspection()
-    {
-        GetInspectionListFromDB();
     }
 
     @Override
@@ -196,8 +196,10 @@ public class MainActivity extends AppCompatActivity {
 
             if (InspectionID == 0) {  // Если 0, то  сгенерим новый
                 InspectionID = CreateNewInspection();
+                GetInspectionListFromDB(); // получим список актов из локальной БД
             }
             InspectionID_Number = OrderEdit.getText().toString();  // запомним текущий номер ЗН
+            return;
         }
 
         saveFullImage(GetFileName());
@@ -299,14 +301,30 @@ public class MainActivity extends AppCompatActivity {
         return;
     }
 
-    public void NewOrder(View view) {
-        OrderEdit.setText("");
-        InspectionID=0;
-        OrderID=0;
-        InspectionID_Number="";
 
+    // функци подготовки системы к вводу нового акта
+    public void ClearInspection() {
+
+        // почистим переменные
+        OrderEdit.setText("");
+        InspectionID = 0;
+        OrderID = 0;
+        InspectionID_Number = "";
         model.setText(getString(R.string.modelbaseline));
         vin.setText(getString(R.string.vinbaseline));
+    }
+
+    // обработка клика
+    public void NewOrder(View view) {
+        ClearInspection();
+
+        // в списке актов сбросим "активный" акт
+        for (int i = 0; i < tablelayout.getChildCount(); i++) {
+            View row = tablelayout.getChildAt(i);
+            row.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+        }
+
+        OrderEdit.requestFocus();
     }
 
 
@@ -331,18 +349,18 @@ public class MainActivity extends AppCompatActivity {
             String responseMessage = "Response from Server:\n" + event.getMessage();
             if (event.getMessage().contains("error"))
                {
-               filepath.append(responseMessage+"\n");
+                   operationlog.append(responseMessage+"\n");
                }
                else {
-                filepath.append("Файл отправлен:\n");
-                filepath.append(event.getMessage() + "\n");
+                operationlog.append("Файл загружен ан сервер:\n");
+                operationlog.append(event.getMessage() + "\n");
                 File file = new File(path+"/"+event.getMessage());
                 Boolean b = file.delete();
                 //Boolean b = Boolean.TRUE;
                 if (b)
                 {
-                    filepath.append("Файл удалён:\n");
-                    filepath.append(event.getMessage() + "\n");
+                    operationlog.append("Файл удалён:\n");
+                    operationlog.append(event.getMessage() + "\n");
 
                     // пометим в базе, что файл сихронизирован
                     ContentValues contentValues = new ContentValues();
@@ -414,6 +432,10 @@ public class MainActivity extends AppCompatActivity {
                 // сохраненным по адресу outputFileUri
                 MyImage.setImageURI(outputFileUri);
             }
+
+            operationlog.append("Файл сформирован:\n");
+            operationlog.append(file.getName() + "\n");
+
         }
     }
 
@@ -443,7 +465,7 @@ public class MainActivity extends AppCompatActivity {
         file = new File(path,
                 fn);
 //                "Test.jpg");
-        filepath.setText(file.getPath()+file.getName());
+        //operationlog.setText(file.getPath()+file.getName());
         outputFileUri =  Uri.fromFile(file);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
         startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
@@ -464,7 +486,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void Sync(View view) {
 
-        //filepath.setText(GetFileName());
         if (!isOnline())
         {
             showToast("Нет подключения к сети");
@@ -498,16 +519,15 @@ public class MainActivity extends AppCompatActivity {
         }
         if (!cursor.isClosed()) {cursor.close();}
 
-/*        filepath.setText("");
-
+/*
         File directory = new File(path);
         File[] files = directory.listFiles();
-        //filepath.append("Size: "+ files.length+"\n" );
+        //operationlog.append("Size: "+ files.length+"\n" );
         for (int i = 0; i < files.length; i++)
         {
             if (files[i].getName().contains("jpg")) {
-                filepath.append("Начало отправки файла:\n");
-                filepath.append(files[i].getName() + "\n");
+                operationlog.append("Начало отправки файла:\n");
+                operationlog.append(files[i].getName() + "\n");
                 ru.ovod.foto2.NetworkRelatedClass.NetworkCall.fileUpload(path+"/"+files[i].getName(), new ru.ovod.foto2.ModelClass.ImageSenderInfo(OrderID.toString(), OrderEdit.getText().toString() ));
                 //break;
             }
@@ -547,19 +567,18 @@ public class MainActivity extends AppCompatActivity {
     {
 
         TextView col1= new TextView(this);
-        TextView col2= new TextView(this);
-        TextView col3= new TextView(this);
+        //TextView col2= new TextView(this);
+        //TextView col3= new TextView(this);
 
 
-        col1.setText("№ "+Numd +" ");
-        col2.setText("ID:"+inspectid.toString());
-        col3.setText(" Ф: " +coun.toString());
+        col1.setText( Html.fromHtml("№ <b>"+Numd +"</b> "+" Фото: <b>" +coun.toString()+"</b>"));
+        //col3.setText(" Фото: <b>" +coun.toString()+"</b>");
 
         TableRow tableRow = new TableRow(this);
 
         tableRow.addView(col1);
-        tableRow.addView(col2);
-        tableRow.addView(col3);
+        //tableRow.addView(col2);
+        //tableRow.addView(col3);
 
         tableRow.setTag(inspectid);
 
@@ -579,6 +598,7 @@ public class MainActivity extends AppCompatActivity {
                                                     row.setBackgroundColor(getResources().getColor(android.R.color.transparent));
                                                 }
                                             }
+                                            ClearInspection();
                                             SetInspectionId((Integer) v.getTag());
                                             // GetPhotoList(); // !!! Внимание ! Временно отключил формирвоание списка, чтоб быстрее работало. готовлю демо-версию к запуску
 
@@ -721,6 +741,16 @@ public class MainActivity extends AppCompatActivity {
 
     // клик для кнопки поиска
     public void SearchClick(View view) {
-        GetOrderIdByNumber();
+        // зачистим перменны перед поискао
+        OrderID=0;
+        model.setText(getString(R.string.modelbaseline));
+        vin.setText(getString(R.string.vinbaseline));
+
+        GetOrderIdByNumber(); // ищем данные по нммеру акта
+
+        if (OrderID==0)
+        {
+            showToast("Не найден заказ-наряд с таким номером на сервере");
+        }
     }
 }

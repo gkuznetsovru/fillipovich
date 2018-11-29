@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.TestLooperManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.widget.TextView;
 
 import java.io.File;
 
@@ -16,7 +18,7 @@ public class Settings extends Activity {
 
     private SQLiteDatabase database;
     private DBHelper dbhelper;
-
+    TextView versionText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +28,9 @@ public class Settings extends Activity {
         // инициализируем БД
         dbhelper = new DBHelper(getApplicationContext());
         database = dbhelper.getWritableDatabase();
+
+        versionText=findViewById(R.id.VersionText);
+        versionText.setText(" ФотоОвод. Версия"+BuildConfig.VERSION_NAME);
     }
 
     @Override

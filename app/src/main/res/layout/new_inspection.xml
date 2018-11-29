@@ -56,7 +56,7 @@
 
             <TextView
                 android:id="@+id/model"
-                android:layout_width="263dp"
+                android:layout_width="245dp"
                 android:layout_height="17dp"
                 android:layout_marginStart="8dp"
                 android:text="@string/modelbaseline"
@@ -67,7 +67,7 @@
 
             <TextView
                 android:id="@+id/vin"
-                android:layout_width="262dp"
+                android:layout_width="245dp"
                 android:layout_height="19dp"
                 android:text="@string/vinbaseline"
                 android:textColor="@color/colorAccent"
@@ -90,7 +90,7 @@
                     android:layout_height="match_parent"
                     android:layout_gravity="center"
                     android:background="@null"
-                    android:drawableLeft="@android:drawable/ic_menu_search"
+                    android:drawableStart="@android:drawable/ic_menu_search"
                     android:gravity="center"
                     android:minWidth="0dp"
                     android:minHeight="0dp"
@@ -132,7 +132,7 @@
                 android:layout_height="wrap_content"
                 tools:layout_editor_absoluteX="89dp"
                 tools:layout_editor_absoluteY="448dp"
-                tools:text="Р›РѕРі РґРµР№СЃС‚РІРёР№" />
+                />
 
 
         </ScrollView>
