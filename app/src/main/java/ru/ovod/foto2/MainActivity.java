@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
                 GetInspectionListFromDB(); // получим список актов из локальной БД
             }
             InspectionID_Number = OrderEdit.getText().toString();  // запомним текущий номер ЗН
-            return;
+            //return;
         }
 
         saveFullImage(GetFileName());
