@@ -30,7 +30,7 @@ public class Settings extends Activity {
         database = dbhelper.getWritableDatabase();
 
         versionText=findViewById(R.id.VersionText);
-        versionText.setText(" ФотоОвод. Версия"+BuildConfig.VERSION_NAME);
+        versionText.setText(" ФотоОвод. Версия "+BuildConfig.VERSION_NAME);
     }
 
     @Override
