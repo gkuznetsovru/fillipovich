@@ -353,7 +353,7 @@ public class MainActivity extends AppCompatActivity {
                    operationlog.append(responseMessage+"\n");
                }
                else {
-                operationlog.append("Файл загружен ан сервер:\n");
+                operationlog.append("Файл загружен на сервер:\n");
                 operationlog.append(event.getMessage() + "\n");
                 File file = new File(path+"/"+event.getMessage());
                 Boolean b = file.delete();
@@ -455,8 +455,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("Изменили в базе Inspection:", InspectionID.toString() );
                 GetInspectionListFromDB();
         }
-
-            operationlog.append(OrderID.toString()+"\n");
+        
         }
     }
 
