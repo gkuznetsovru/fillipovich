@@ -437,7 +437,7 @@ public class MainActivity extends AppCompatActivity {
             }
             operationlog.append("Файл сформирован:\n");
             operationlog.append(file.getName() + "\n");
-
+            GetInspectionListFromDB();
         }
 
         // обработаем получение OrderID
