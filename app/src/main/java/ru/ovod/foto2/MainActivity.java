@@ -453,9 +453,13 @@ public class MainActivity extends AppCompatActivity {
                 contentValues.put(DBHelper.INSPECTION_ORDERID, OrderID);
                 int Inspect = database.update(DBHelper.INSPECTION, contentValues, DBHelper.INSPECTION_ID+"=?", new String[] { InspectionID.toString() });
                 Log.e("Изменили в базе Inspection:", InspectionID.toString() );
-                GetInspectionListFromDB();
+
+                GetInspectionListFromDB(); // обновим список
+
+                GetOrderIdByNumber(); // заполним модель и VIN
+
         }
-        
+
         }
     }
 
