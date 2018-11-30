@@ -7,17 +7,19 @@
     android:fitsSystemWindows="true"
     tools:context=".SelectOrderActivity">
 
+
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
-        android:layout_height="130dp"
+        android:layout_height="118dp"
         android:fitsSystemWindows="true"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:theme="@style/AppTheme.PopupOverlay">
+
 
         <android.support.design.widget.CollapsingToolbarLayout
             android:id="@+id/toolbar_layout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:fitsSystemWindows="true"
             app:contentScrim="?attr/colorPrimary"
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
@@ -30,19 +32,39 @@
                 app:layout_collapseMode="pin"
                 app:popupTheme="@style/AppTheme.PopupOverlay" />
 
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="219dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="70dp"
+                android:layout_marginTop="5dp"
+                android:text="Выберите ЗН"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
         </android.support.design.widget.CollapsingToolbarLayout>
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_select_order" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
         android:layout_margin="@dimen/fab_margin"
         app:backgroundTint="@color/colorPrimaryDark"
-        app:layout_anchor="@id/app_bar"
-        app:layout_anchorGravity="bottom|end"
+        app:layout_anchor="@+id/include"
+        app:layout_anchorGravity="right|bottom"
+
         app:srcCompat="@android:drawable/checkbox_on_background" />
+
+    <include
+        android:id="@+id/include"
+        layout="@layout/content_select_order"
+        android:layout_height="434dp"
+        android:visibility="visible"
+        app:layout_anchor="@+id/app_bar"
+        app:layout_anchorGravity="right|bottom" />
+
 
 </android.support.design.widget.CoordinatorLayout>

@@ -88,7 +88,8 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
-    static final int REQUEST_IMAGE_CAPTURE = 1;
+    static final int REQUEST_IMAGE_CAPTURE = 3374;  // зададим случайный код для активности получения фото
+    static final int REQUEST_ORDERID = 3477;  // зададим случайный код для OderId
 
     private TableLayout tablelayout;
     private TableLayout photoLayout;
@@ -206,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    // сформируем новй акт по ЗН
+    // сформируем новый акт по ЗН
     public  Integer CreateNewInspection() {
             ContentValues contentValues = new ContentValues();
             contentValues.put(DBHelper.INSPECTION_NUMBER, OrderEdit.getText().toString());
@@ -403,11 +404,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    // определим функцию получени резултатов (обращение к другим формам или активностя)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
 
+        // обработаем получение фото
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
 
             // запишем информацию о фото в базу
@@ -432,10 +435,28 @@ public class MainActivity extends AppCompatActivity {
                 // сохраненным по адресу outputFileUri
                 MyImage.setImageURI(outputFileUri);
             }
-
             operationlog.append("Файл сформирован:\n");
             operationlog.append(file.getName() + "\n");
 
+        }
+
+        // обработаем получение OrderID
+        if (requestCode == REQUEST_ORDERID && resultCode == RESULT_OK)
+        {
+            OrderID = (Integer) data.getIntExtra("OrdId",0);
+            if (OrderID>0) {
+                OrderEdit.setText(GetNumberByOrderId(OrderID));  // получим OrderId
+
+                // пометим в базе, что файл сихронизирован
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(DBHelper.INSPECTION_NUMBER, OrderEdit.getText().toString());
+                contentValues.put(DBHelper.INSPECTION_ORDERID, OrderID);
+                int Inspect = database.update(DBHelper.INSPECTION, contentValues, DBHelper.INSPECTION_ID+"=?", new String[] { InspectionID.toString() });
+                Log.e("Изменили в базе Inspection:", InspectionID.toString() );
+                GetInspectionListFromDB();
+        }
+
+            operationlog.append(OrderID.toString()+"\n");
         }
     }
 
@@ -721,6 +742,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    // фунция ищет Number на сервере Овода по номеру
+    public String GetNumberByOrderId(Integer OrdId)
+    {
+
+        String res = "";
+        if (!isOnline()) {return res;} // если не в сети, то не получаем инфу с сервера
+        dataset.GetJSONFromWEB("select number from TechnicalCentre.dbo.V_ActualOrderForOrderPhotos with(NoLock) where OrderId="+OrdId.toString()+" ");
+        if (dataset.RecordCount()>0)
+        {
+            dataset.GetRowByNumber(0);
+            res = dataset.FieldByName_AsString("number");
+        }
+        return res;
+
+    }
+
+
+
     // функция устанавливает InspectionId (излекает данные из базы)
     public void SetInspectionId (Integer InsID)
     {
@@ -738,6 +777,7 @@ public class MainActivity extends AppCompatActivity {
         }
         if (!cursor.isClosed()) {cursor.close();}
     }
+
 
     // клик для кнопки поиска
     public void SearchClick(View view) {
@@ -765,10 +805,17 @@ public class MainActivity extends AppCompatActivity {
         if (OrderID==0) // если ЗН не обнаружен
         {
             // то запросим у менеджера выбор ЗН
-            Intent intent = new Intent(MainActivity.this,  SelectOrderActivity.class );
-            startActivity(intent);
+            //Intent intent = new Intent(MainActivity.this,  SelectOrderActivity.class );
+            //startActivity(intent);
 
+            Intent questionIntent = new Intent(MainActivity.this, SelectOrderActivity.class);
+            startActivityForResult(questionIntent, REQUEST_ORDERID);
             //showToast("Не найден заказ-наряд с таким номером на сервере");
         }
     }
+
+
+
+
+
 }

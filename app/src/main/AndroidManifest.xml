@@ -33,6 +33,7 @@
             android:name=".Settings"
             android:label="Настройки"
             android:theme="@style/AppTheme"></activity>
+
         <activity
             android:name=".SelectOrderActivity"
             android:label="@string/title_activity_select_order"

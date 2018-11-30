@@ -1,5 +1,6 @@
 package ru.ovod.foto2;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -15,6 +16,7 @@ public class SelectOrderActivity extends AppCompatActivity {
 
     DataSet dataset = new DataSet(); // Инициализируем класс доступа к базе Овода
     TableLayout tableorders;
+    Integer orderId = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,14 +29,17 @@ public class SelectOrderActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                ReturnOrder();
+                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                //        .setAction("Action", null).show();
             }
         });
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         tableorders = (TableLayout) findViewById(R.id.TableOrders);
         GetOrderFromWebServer();
+
+        //setTitle("Поймал мышек: ");
     }
 
     // фунция ищет ЗН на сервере Овода по номеру
@@ -79,7 +84,11 @@ public class SelectOrderActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
 
-
+                    /*Intent answerIntent = new Intent();
+                    answerIntent.putExtra("OrdId", (Integer) v.getTag());
+                    //answerIntent.putExtra("Num", 344);
+                    setResult(RESULT_OK, answerIntent);
+                    finish();*/
                     for (int i = 0; i < tableorders.getChildCount(); i++) {
                         View row = tableorders.getChildAt(i);
                         if (row == v) {
@@ -89,8 +98,7 @@ public class SelectOrderActivity extends AppCompatActivity {
                             row.setBackgroundColor(getResources().getColor(android.R.color.transparent));
                         }
                     }
-
-
+                    orderId = (Integer) v.getTag();
 
                 }
             });
@@ -102,6 +110,14 @@ public class SelectOrderActivity extends AppCompatActivity {
         }
 
 
-
-
+    public void ReturnOrder() {
+        if (orderId>0) {
+            Intent answerIntent = new Intent();
+            answerIntent.putExtra("OrdId", orderId);
+            //answerIntent.putExtra("Num", 344);
+            setResult(RESULT_OK, answerIntent);
+            finish();
+        }
     }
+}
+
