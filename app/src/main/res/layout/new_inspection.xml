@@ -8,32 +8,17 @@
     tools:context=".MainActivity">
 
     <LinearLayout
+        android:id="@+id/linearLayout1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <android.support.constraint.ConstraintLayout
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="143dp"
-            android:background="@android:color/darker_gray">
-
-
-            <Button
-                android:id="@+id/button"
-                android:layout_width="191dp"
-                android:layout_height="@dimen/ButtonHeight"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="12dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginBottom="8dp"
-                android:onClick="NewPhotoClick"
-                android:text="@string/buttonHint"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="@+id/editText"
-                app:layout_constraintHorizontal_bias="0.533"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/editText"
-                app:layout_constraintVertical_bias="0.0" />
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
 
             <EditText
                 android:id="@+id/editText"
@@ -43,37 +28,6 @@
                 android:hint="@string/editTextHint"
                 android:inputType="number"
                 tools:layout_editor_absoluteX="8dp" />
-
-            <Button
-                android:id="@+id/button3"
-                android:layout_width="wrap_content"
-                android:layout_height="@dimen/ButtonHeight"
-                android:layout_marginStart="8dp"
-                android:onClick="Sync"
-                android:text="@string/uploadtestbutton"
-                app:layout_constraintBottom_toBottomOf="@+id/button"
-                app:layout_constraintStart_toEndOf="@+id/button" />
-
-            <TextView
-                android:id="@+id/model"
-                android:layout_width="245dp"
-                android:layout_height="17dp"
-                android:layout_marginStart="8dp"
-                android:text="@string/modelbaseline"
-                android:textColor="@color/colorAccent"
-                android:textStyle="bold"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/button" />
-
-            <TextView
-                android:id="@+id/vin"
-                android:layout_width="245dp"
-                android:layout_height="19dp"
-                android:text="@string/vinbaseline"
-                android:textColor="@color/colorAccent"
-                android:textStyle="bold"
-                app:layout_constraintStart_toStartOf="@+id/model"
-                app:layout_constraintTop_toBottomOf="@+id/model" />
 
             <FrameLayout
                 android:layout_width="29dp"
@@ -98,18 +52,45 @@
                     android:textColor="@android:color/white" />
             </FrameLayout>
 
-            <Button
-                android:id="@+id/NewOrder"
-                android:layout_width="wrap_content"
-                android:layout_height="@dimen/ButtonHeight"
-                android:onClick="NewOrder"
-                android:text="@string/button2Hint"
-                app:layout_constraintBottom_toBottomOf="@+id/editText"
-                app:layout_constraintStart_toStartOf="@+id/button3"
-                app:layout_constraintTop_toTopOf="@+id/editText"
-                app:layout_constraintVertical_bias="1.0" />
+        </LinearLayout>
 
-        </android.support.constraint.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/model"
+            android:layout_width="245dp"
+            android:layout_height="17dp"
+            android:layout_marginStart="8dp"
+            android:text="@string/modelbaseline"
+            android:textColor="@color/colorAccent"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/vin"
+            android:layout_width="245dp"
+            android:layout_height="19dp"
+            android:layout_marginStart="8dp"
+            android:text="@string/vinbaseline"
+            android:textColor="@color/colorAccent"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/dateorder"
+            android:layout_width="245dp"
+            android:layout_height="19dp"
+            android:layout_marginStart="8dp"
+            android:text="@string/dateorderhint"
+            android:textColor="@color/colorAccent"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout3"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout1">
 
         <ImageView
             android:id="@+id/mImageView"
@@ -119,24 +100,40 @@
             android:contentDescription="@string/imageDescription"
             tools:srcCompat="@tools:sample/avatars" />
 
-
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="100dp"
             app:layout_constraintTop_toBottomOf="@+id/mImageView"
             tools:layout_editor_absoluteX="13dp">
 
+
             <TextView
                 android:id="@+id/filepath"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 tools:layout_editor_absoluteX="89dp"
-                tools:layout_editor_absoluteY="448dp"
-                />
-
-
+                tools:layout_editor_absoluteY="448dp" />
         </ScrollView>
 
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <Button
+            android:id="@+id/button3"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:layout_marginStart="8dp"
+            android:background="@color/colorPrimary"
+            android:onClick="Sync"
+            android:padding="5dp"
+            android:text="@string/uploadtestbutton"
+            android:textStyle="bold" />
     </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

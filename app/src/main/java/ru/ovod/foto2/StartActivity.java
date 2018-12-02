@@ -23,6 +23,7 @@ public class StartActivity extends AppCompatActivity {
     TableLayout tableInspections;
     SQLiteDatabase database;  // база данных SQLite - с ней работаем в данном классе
     DBHelper dbhelper; // класс,  в котором задана структура нашей базы
+    Integer selectedInspectionId = 0; // выбранная в таблице InspectionId
 
 
     @Override
@@ -45,6 +46,7 @@ public class StartActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(StartActivity.this,  MainActivity.class);
+                intent.putExtra("InsId", selectedInspectionId);
                 startActivity(intent);
 
                // Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
@@ -122,6 +124,11 @@ public class StartActivity extends AppCompatActivity {
                         row.setBackgroundColor(getResources().getColor(android.R.color.transparent));
                     }
                 }
+
+                selectedInspectionId =  (Integer) v.getTag();
+                Intent intent = new Intent(StartActivity.this,  MainActivity.class);
+                intent.putExtra("InsId", selectedInspectionId);
+                startActivity(intent);
                 //ClearInspection();
                 //SetInspectionId((Integer) v.getTag());
                 // GetPhotoList(); // !!! Внимание ! Временно отключил формирвоание списка, чтоб быстрее работало. готовлю демо-версию к запуску

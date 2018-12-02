@@ -21,6 +21,7 @@ import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
@@ -117,14 +118,30 @@ public class MainActivity extends AppCompatActivity {
         model = findViewById(R.id.model);
         vin = findViewById(R.id.vin);
 
-        GetInspectionListFromDB(); // получим список актов из локальной БД
-
         // Allow application use internet
         if (android.os.Build.VERSION.SDK_INT > 9) {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
                     .permitAll().build();
             StrictMode.setThreadPolicy(policy);
         }
+
+        FloatingActionButton fabPhoto = (FloatingActionButton) findViewById(R.id.fabPhoto);
+        fabPhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                NewPhotoClick(view);
+
+            }
+        });
+
+
+        // проверим полученнные парметры при активации формы
+        Intent intent = getIntent();
+        InspectionID  = intent.getIntExtra("InsId",0);
+        if (InspectionID>0)  // если передан параметр, то извлечём вс из базы данных
+          {SetInspectionId(InspectionID);}
+           else
+               {NewOrder();} // иначе готовим форму для нового акта
 
     }
 
@@ -144,7 +161,6 @@ public class MainActivity extends AppCompatActivity {
         // Операции для выбранного пункта меню
         switch (id) {
             case R.id.Menu_ListInspections:
-                GetInspectionListFromDB();
                 return true;
             case R.id.Menu_OrdersFromServer:
               // infoTextView.setText("Вы выбрали кошку!");
@@ -197,7 +213,6 @@ public class MainActivity extends AppCompatActivity {
 
             if (InspectionID == 0) {  // Если 0, то  сгенерим новый
                 InspectionID = CreateNewInspection();
-                GetInspectionListFromDB(); // получим список актов из локальной БД
             }
             InspectionID_Number = OrderEdit.getText().toString();  // запомним текущий номер ЗН
             //return;
@@ -247,14 +262,14 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    // Фунция получает список Inspections из базу и заполняете TableLayout
+    // Фунция получает список Фото из базы
     public  void GetPhotoList() {
 
         // проверим, что выбран (определён) акт осомотра
         if (!CheckInspectionId()) {return;}
 
         // очистикм tablelayout
-        photoLayout.removeAllViewsInLayout();
+        //photoLayout.removeAllViewsInLayout();
 
         // получим из базы список Актов
         String SQL = "SELECT " + DBHelper.PHOTO_ID + ", " + DBHelper.PHOTO_INSPECTION + ", "+ DBHelper.PHOTO_NAME
@@ -274,34 +289,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    // Фунция получает список Inspections из базу
-    public  void GetInspectionListFromDB() {
-
-        // очистикм tablelayout
-        tablelayout.removeAllViewsInLayout();
-
-        // получим из базы список Актов
-
-        String SQL = "SELECT " + DBHelper.INSPECTION_ID + ", " + DBHelper.INSPECTION_NUMBER + ", "+ DBHelper.INSPECTION_ORDERID + ", "
-                + " (SELECT count(*) from  "+ DBHelper.PHOTO + " where "+DBHelper.PHOTO_ISSYNC+"=0 and "
-                + DBHelper.PHOTO+"."+DBHelper.PHOTO_INSPECTION+" = " + DBHelper.INSPECTION+"."+DBHelper.INSPECTION_ID + ") as coun"
-               // + " 10 as coun"
-                + " FROM " + DBHelper.INSPECTION + " Order by "+ DBHelper.INSPECTION_ID;
-        Cursor cursor = database.rawQuery(SQL, null);
-        if (!cursor.isAfterLast()) {
-            while (cursor.moveToNext()) {
-                String num = cursor.getString(cursor.getColumnIndex(DBHelper.INSPECTION_NUMBER));
-                Integer OrdID = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ORDERID));
-                Integer InsID = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ID));
-                Integer Coun = cursor.getInt(cursor.getColumnIndex("coun"));
-                AddTableRow(num,OrdID,InsID, Coun);
-              Log.e("DB ", "Извлекли INSPECTION_ID: " + InsID);
-            }
-        }
-        if (!cursor.isClosed()) {cursor.close();}
-        return;
-    }
-
 
     // функци подготовки системы к вводу нового акта
     public void ClearInspection() {
@@ -315,8 +302,8 @@ public class MainActivity extends AppCompatActivity {
         vin.setText(getString(R.string.vinbaseline));
     }
 
-    // обработка клика
-    public void NewOrder(View view) {
+    //  подготовим форму для формирование нового акта
+    public void NewOrder() {
         ClearInspection();
 
         // в списке актов сбросим "активный" акт
@@ -437,7 +424,6 @@ public class MainActivity extends AppCompatActivity {
             }
             operationlog.append("Файл сформирован:\n");
             operationlog.append(file.getName() + "\n");
-            GetInspectionListFromDB();
         }
 
         // обработаем получение OrderID
@@ -453,8 +439,6 @@ public class MainActivity extends AppCompatActivity {
                 contentValues.put(DBHelper.INSPECTION_ORDERID, OrderID);
                 int Inspect = database.update(DBHelper.INSPECTION, contentValues, DBHelper.INSPECTION_ID+"=?", new String[] { InspectionID.toString() });
                 Log.e("Изменили в базе Inspection:", InspectionID.toString() );
-
-                GetInspectionListFromDB(); // обновим список
 
                 GetOrderIdByNumber(); // заполним модель и VIN
 
@@ -584,57 +568,6 @@ public class MainActivity extends AppCompatActivity {
                     REQUEST_EXTERNAL_STORAGE
             );
         }
-    }
-
-    // функция доабвление строки
-    private void  AddTableRow(String Numd, Integer Int_OrderId, Integer inspectid, Integer coun)
-    {
-
-        TextView col1= new TextView(this);
-        //TextView col2= new TextView(this);
-        //TextView col3= new TextView(this);
-
-
-        col1.setText( Html.fromHtml("№ <b>"+Numd +"</b> "+" Фото: <b>" +coun.toString()+"</b>"));
-        //col3.setText(" Фото: <b>" +coun.toString()+"</b>");
-
-        TableRow tableRow = new TableRow(this);
-
-        tableRow.addView(col1);
-        //tableRow.addView(col2);
-        //tableRow.addView(col3);
-
-        tableRow.setTag(inspectid);
-
-        //tableRow.setTag(inspectid, tableRow);
-
-        tableRow.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-
-
-                                            for (int i = 0; i < tablelayout.getChildCount(); i++) {
-                                                View row = tablelayout.getChildAt(i);
-                                                if (row == v) {
-                                                    row.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
-                                                } else {
-                                                    //Change this to your normal background color.
-                                                    row.setBackgroundColor(getResources().getColor(android.R.color.transparent));
-                                                }
-                                            }
-                                            ClearInspection();
-                                            SetInspectionId((Integer) v.getTag());
-                                            // GetPhotoList(); // !!! Внимание ! Временно отключил формирвоание списка, чтоб быстрее работало. готовлю демо-версию к запуску
-
-
-
-                                        }
-                                    });
-
-
-        tableRow.setPadding(5,9,5,9);
-
-        tablelayout.addView(tableRow);
     }
 
 
