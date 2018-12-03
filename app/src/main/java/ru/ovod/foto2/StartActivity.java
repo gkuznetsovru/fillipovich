@@ -115,17 +115,21 @@ public class StartActivity extends AppCompatActivity {
             public void onClick(View v) {
 
 
-                for (int i = 0; i < tableInspections.getChildCount(); i++) {
-                    View row = tableInspections.getChildAt(i);
-                    if (row == v) {
-                        row.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
-                    } else {
-                        //Change this to your normal background color.
-                        row.setBackgroundColor(getResources().getColor(android.R.color.transparent));
-                    }
+                try {
+                        for (int i = 0; i < tableInspections.getChildCount() ; i++) {
+                            View row = tableInspections.getChildAt(i);
+                            if (row == v) {
+                                row.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
+                            } else {
+                                //Change this to your normal background color.
+                                row.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+                        }
+                        }
                 }
-
-                selectedInspectionId =  (Integer) v.getTag();
+                catch (Exception e)
+                {
+                    selectedInspectionId =0;
+                }
                 Intent intent = new Intent(StartActivity.this,  MainActivity.class);
                 intent.putExtra("InsId", selectedInspectionId);
                 startActivity(intent);

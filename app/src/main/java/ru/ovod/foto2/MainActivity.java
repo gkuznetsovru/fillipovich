@@ -46,6 +46,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Random;
@@ -77,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
     private Uri outputFileUri;
     private TextView operationlog;
     private File file;
+    private File thumbnaul_file;
     private String path;
     private TableRow SelectedTableRow;
 
@@ -92,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
     static final int REQUEST_IMAGE_CAPTURE = 3374;  // зададим случайный код для активности получения фото
     static final int REQUEST_ORDERID = 3477;  // зададим случайный код для OderId
 
-    private TableLayout tablelayout;
+    //private TableLayout tablelayout;
     private TableLayout photoLayout;
 
     ProgressDialog dialog = null;
@@ -108,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
         OrderEdit= findViewById(R.id.editText);
         operationlog= findViewById(R.id.filepath);
         path = Environment.getExternalStorageDirectory().toString();
-        tablelayout = findViewById(R.id.tablelayout);
+        //tablelayout = findViewById(R.id.tablelayout);
         photoLayout = findViewById(R.id.phototablelayout);
 
         verifyStoragePermissions(this);
@@ -307,10 +309,10 @@ public class MainActivity extends AppCompatActivity {
         ClearInspection();
 
         // в списке актов сбросим "активный" акт
-        for (int i = 0; i < tablelayout.getChildCount(); i++) {
-            View row = tablelayout.getChildAt(i);
-            row.setBackgroundColor(getResources().getColor(android.R.color.transparent));
-        }
+//        for (int i = 0; i < tablelayout.getChildCount(); i++) {
+//            View row = tablelayout.getChildAt(i);
+//            row.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+//        }
 
         OrderEdit.requestFocus();
     }
@@ -386,8 +388,42 @@ public class MainActivity extends AppCompatActivity {
         //String logFileName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
         //logFileName = OrderEdit.getText()+"_"+ logFileName+".jpg";
 
-        logFileName=OrderEdit.getText()+"_"+generateUniqueFileName()+".jpg";
+        String gUF = generateUniqueFileName();
+        logFileName=OrderEdit.getText()+"_"+gUF+".jpg";
+
+
+        // сгенерим сразу File для Thumbnail
+        thumbnaul_file = new File(path+"/"+OrderEdit.getText()+"_"+gUF+"_small.jpg");
+
         return logFileName;
+    }
+
+
+    // функция записи Bitmap (Thumbnail) в файл
+    private void saveBitmap(Bitmap bitmap,String path){
+        if(bitmap!=null){
+            try {
+                FileOutputStream outputStream = null;
+                try {
+                    outputStream = new FileOutputStream(path); //here is set your file path where you want to save or also here you can set file object directly
+
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream); // bitmap is your Bitmap instance, if you want to compress it you can compress reduce percentage
+                    // PNG is a lossless format, the compression factor (100) is ignored
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        if (outputStream != null) {
+                            outputStream.close();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
@@ -404,11 +440,13 @@ public class MainActivity extends AppCompatActivity {
             ContentValues contentValues = new ContentValues();
             contentValues.put(DBHelper.PHOTO_PATH, file.getPath());
             contentValues.put(DBHelper.PHOTO_NAME, file.getName());
+            contentValues.put(DBHelper.PHOTO_NAME_THUMBNAIL, thumbnaul_file.getName());
             contentValues.put(DBHelper.PHOTO_INSPECTION, InspectionID);
             contentValues.put(DBHelper.PHOTO_ISSYNC, 0);
             Long Inspect = database.insert(DBHelper.PHOTO, null, contentValues);
             Integer id =  Inspect !=null ? Inspect.intValue() :null;
-            Log.e("ID добавленной фото:", InspectionID.toString());
+            Log.e("ID добавленной фото:", id.toString());
+            Log.e("Preview:", thumbnaul_file.getPath());
 
             // Проверяем, содержит ли результат маленькую картинку
             if (data != null) {
@@ -420,8 +458,15 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 // Какие-то действия с полноценным изображением,
                 // сохраненным по адресу outputFileUri
-                MyImage.setImageURI(outputFileUri);
+                //MyImage.setImageURI(outputFileUri);
+
+                // сформируем сразу Preview
+                int px = 85;
+                Bitmap myBitmap = decodeSampledBitmapFromResource( file.getAbsolutePath(), px, px);
+                saveBitmap(myBitmap, thumbnaul_file.getPath());
+                MyImage.setImageURI(Uri.fromFile(thumbnaul_file));
             }
+
             operationlog.append("Файл сформирован:\n");
             operationlog.append(file.getName() + "\n");
         }
