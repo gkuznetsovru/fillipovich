@@ -2,6 +2,7 @@ package ru.ovod.foto2;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
@@ -14,12 +15,14 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    private static final int DB_VERSION = 5; // версия
+    private static final int DB_VERSION = 6; // версия
     private static final String DB_Name = "OvodOrders";  // имя локаьной базы данных
     private static final String TAGDB = "DATABASE_OPERATION";
 
@@ -62,7 +65,7 @@ public class DBHelper extends SQLiteOpenHelper {
 //            db.execSQL("drop table if exists " + PHOTO);
 
             String sql = "create table IF NOT EXISTS " + INSPECTION + "(" + INSPECTION_ID
-                    + " integer primary key AUTOINCREMENT," + INSPECTION_NUMBER + " text," + INSPECTION_DATE + " text," + INSPECTION_MODEL + " text," + INSPECTION_VIN + " text,"
+                    + " integer primary key AUTOINCREMENT," + INSPECTION_NUMBER + " text," + INSPECTION_DATE + " integer," + INSPECTION_MODEL + " text," + INSPECTION_VIN + " text,"
                     + INSPECTION_ORDERID + " integer," + INSPECTION_ISSYNC + " integer" + ")";
 
             Log.e(TAGDB, sql);
@@ -92,6 +95,132 @@ public class DBHelper extends SQLiteOpenHelper {
         onCreate(db);
 
     }
+
+
+    public ArrayList<Inspection> getInspectionList(){
+        Inspection item;
+        ArrayList<Inspection> inspectionList = new ArrayList<Inspection>();
+
+        SQLiteDatabase database = this.getReadableDatabase();
+        String SQL = "SELECT " + INSPECTION_ID + ", " + INSPECTION_NUMBER + ", " + INSPECTION_ORDERID + ", "
+                + INSPECTION_DATE + ", " + INSPECTION_MODEL + ", " + INSPECTION_VIN + ", " + INSPECTION_ISSYNC + ", "
+                + " (SELECT count(*) from  " + PHOTO + " where " + PHOTO + "." + PHOTO_INSPECTION + " = " + INSPECTION + "." + INSPECTION_ID + ") as coun"
+                + " FROM " + INSPECTION
+                + " Order by " + INSPECTION_ID + " desc";
+        Cursor cursor = database. rawQuery(SQL, null);
+        if (!cursor.isAfterLast()) {
+            while (cursor.moveToNext()) {
+                Integer InsID = cursor.getInt(cursor.getColumnIndex(INSPECTION_ID));
+                Integer num = cursor.getInt(cursor.getColumnIndex(INSPECTION_NUMBER));
+                Integer OrdID = cursor.getInt(cursor.getColumnIndex(INSPECTION_ORDERID));
+                Date dt = new Date(cursor.getLong(cursor.getColumnIndex(INSPECTION_DATE)));
+                String model = cursor.getString(cursor.getColumnIndex(INSPECTION_MODEL));
+                String vin = cursor.getString(cursor.getColumnIndex(INSPECTION_VIN));
+                Integer isSynced = cursor.getInt(cursor.getColumnIndex(INSPECTION_ISSYNC));
+                Integer Coun = cursor.getInt(cursor.getColumnIndex("coun"));
+
+                item = new Inspection(InsID, num, OrdID, isSynced, dt, model, vin);
+                item.setPhotoCo(Coun);
+                inspectionList.add(item);
+
+                Log.e("DB ", "Извлекли INSPECTION_ID: " + InsID);
+            }
+        }
+        cursor.close();
+        database.close();
+
+        return inspectionList;
+    }
+
+    public Inspection getInspection(int inspectionID) {
+        Inspection item;
+        item = null;
+        if (inspectionID > 0) {
+            SQLiteDatabase database = this.getReadableDatabase();
+            String SQL = "SELECT " + INSPECTION_ID + ", " + INSPECTION_NUMBER + ", " + INSPECTION_ORDERID + ", "
+                    + INSPECTION_DATE + ", " + INSPECTION_MODEL + ", " + INSPECTION_VIN + ", " + INSPECTION_ISSYNC + ", "
+                    + " (SELECT count(*) from  " + PHOTO + " where " + PHOTO + "." + PHOTO_INSPECTION + " = " + INSPECTION + "." + INSPECTION_ID + ") as coun"
+                    + " FROM " + INSPECTION
+                    + " WHERE " + INSPECTION_ID + " = " + Integer.toString(inspectionID);
+            Cursor cursor = database.rawQuery(SQL, null);
+            if (!cursor.isAfterLast()) {
+                cursor.moveToFirst();
+                Integer InsID = cursor.getInt(cursor.getColumnIndex(INSPECTION_ID));
+                Integer num = cursor.getInt(cursor.getColumnIndex(INSPECTION_NUMBER));
+                Integer OrdID = cursor.getInt(cursor.getColumnIndex(INSPECTION_ORDERID));
+                Date dt = new Date(cursor.getLong(cursor.getColumnIndex(INSPECTION_DATE)));
+                String model = cursor.getString(cursor.getColumnIndex(INSPECTION_MODEL));
+                String vin = cursor.getString(cursor.getColumnIndex(INSPECTION_VIN));
+                Integer isSynced = cursor.getInt(cursor.getColumnIndex(INSPECTION_ISSYNC));
+                Integer Coun = cursor.getInt(cursor.getColumnIndex("coun"));
+
+                item = new Inspection(InsID, num, OrdID, isSynced, dt, model, vin);
+                item.setPhotoCo(Coun);
+
+            }
+            cursor.close();
+            database.close();
+        }
+        return item;
+    }
+
+    public Inspection getInspectionByNumber(int number) {
+        Inspection item;
+        item = null;
+        if (number > 0) {
+            SQLiteDatabase database = this.getReadableDatabase();
+            String SQL = "SELECT " + INSPECTION_ID + ", " + INSPECTION_NUMBER + ", " + INSPECTION_ORDERID + ", "
+                    + INSPECTION_DATE + ", " + INSPECTION_MODEL + ", " + INSPECTION_VIN + ", " + INSPECTION_ISSYNC + ", "
+                    + " (SELECT count(*) from  " + PHOTO + " where " + PHOTO + "." + PHOTO_INSPECTION + " = " + INSPECTION + "." + INSPECTION_ID + ") as coun"
+                    + " FROM " + INSPECTION
+                    + " WHERE " + INSPECTION_NUMBER + " = " + Integer.toString(number);
+            Cursor cursor = database.rawQuery(SQL, null);
+            if (!cursor.isAfterLast()) {
+                cursor.moveToFirst();
+                Integer InsID = cursor.getInt(cursor.getColumnIndex(INSPECTION_ID));
+                Integer num = cursor.getInt(cursor.getColumnIndex(INSPECTION_NUMBER));
+                Integer OrdID = cursor.getInt(cursor.getColumnIndex(INSPECTION_ORDERID));
+                Date dt = new Date(cursor.getLong(cursor.getColumnIndex(INSPECTION_DATE)));
+                String model = cursor.getString(cursor.getColumnIndex(INSPECTION_MODEL));
+                String vin = cursor.getString(cursor.getColumnIndex(INSPECTION_VIN));
+                Integer isSynced = cursor.getInt(cursor.getColumnIndex(INSPECTION_ISSYNC));
+                Integer Coun = cursor.getInt(cursor.getColumnIndex("coun"));
+
+                item = new Inspection(InsID, num, OrdID, isSynced, dt, model, vin);
+                item.setPhotoCo(Coun);
+
+            }
+            cursor.close();
+            database.close();
+        }
+        return item;
+    }
+
+    public Inspection insInspection(Inspection inspection) {
+        int inspectionID;
+
+        //TODO Вставить в базу
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(INSPECTION_NUMBER, inspection.getNumber());
+        if (inspection.getOrderid() > 0) { contentValues.put(INSPECTION_ORDERID, inspection.getOrderid()); }
+        contentValues.put(INSPECTION_ISSYNC, inspection.getIssync());
+        if (inspection.getDate() != null) { contentValues.put(INSPECTION_DATE, inspection.getDate().getTime()); }
+        if (inspection.getModel() != null) { contentValues.put(INSPECTION_MODEL, inspection.getModel()); }
+        if (inspection.getVin() != null) { contentValues.put(INSPECTION_VIN, inspection.getVin()); }
+
+        SQLiteDatabase database = this.getWritableDatabase();
+        Long Inspect = database.insert(INSPECTION, null, contentValues);
+        database.close();
+
+        inspectionID =  Inspect != null ? Inspect.intValue() : 0;
+
+        if (inspectionID > 0) {
+            return getInspection(inspectionID);
+        } else {
+            return null;
+        }
+    }
+
 
 
     /*public void AddInspection(String num)

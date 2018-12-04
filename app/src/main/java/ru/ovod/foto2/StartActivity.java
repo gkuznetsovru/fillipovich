@@ -4,16 +4,27 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.ListView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 
 import static ru.ovod.foto2.MainActivity.verifyStoragePermissions;
 import ru.ovod.foto2.ModelClass.EventModel;
@@ -25,6 +36,8 @@ public class StartActivity extends AppCompatActivity {
     DBHelper dbhelper; // класс,  в котором задана структура нашей базы
     Integer selectedInspectionId = 0; // выбранная в таблице InspectionId
 
+    ItemsAdapter adapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,12 +46,26 @@ public class StartActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
-        tableInspections = findViewById(R.id.tableInspections);
-
         verifyStoragePermissions(this);
         dbhelper = new DBHelper(getApplicationContext());
         database = dbhelper.getWritableDatabase();
+
+
+        adapter = new ItemsAdapter();
+        final ListView items = (ListView) findViewById(R.id.items);
+        items.setAdapter(adapter);
+        items.setClickable(true);
+        items.setOnItemClickListener(
+                new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        Inspection item = (Inspection) parent.getItemAtPosition(position);
+                        startAddCarInspectionActivity(item.get_inspectionid());
+                    }
+                }
+        );
+
+        RefreshList(); // обновим список
 
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_neworder);
@@ -49,12 +76,17 @@ public class StartActivity extends AppCompatActivity {
                 intent.putExtra("InsId", selectedInspectionId);
                 startActivity(intent);
 
-               // Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-               //         .setAction("Action", null).show();
+                // Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                //         .setAction("Action", null).show();
             }
         });
 
-        GetInspectionListFromDB();
+      /*  tableInspections = findViewById(R.id.tableInspections);
+
+
+
+
+        GetInspectionListFromDB();*/
     }
 
 
@@ -147,6 +179,71 @@ public class StartActivity extends AppCompatActivity {
         tableInspections.addView(tableRow);
     }
 
+
+
+    // Determines if Action bar item was selected. If true then do corresponding action.
+ /*   @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        //handle presses on the action bar items
+        switch (item.getItemId()) {
+
+            case R.id.acti:
+                startAddCarInspectionActivity(0);
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }*/
+
+    private void startAddCarInspectionActivity(int id){
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("inspectionID", id);
+        startActivity(intent);
+    }
+
+    private class ItemsAdapter extends ArrayAdapter<Inspection> {
+        public ItemsAdapter() {
+            super(StartActivity.this, R.layout.list_item_inspection);
+        }
+
+        @NonNull
+        @Override
+        public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+            final View view = getLayoutInflater().inflate(R.layout.list_item_inspection, null);
+            final Inspection item = getItem(position);
+
+            if (item.getPhotoCo() > 0) { ((TextView) view.findViewById(R.id.viewPhotoCo)).setText(String.valueOf(item.getPhotoCo())); }
+            ((TextView) view.findViewById(R.id.viewNumber)).setText(String.valueOf(item.getNumber()));
+            if (item.getDate().getTime() == 0) {
+                ((TextView) view.findViewById(R.id.viewDate)).setText("");
+            }else {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd.mm.yyyy");
+                ((TextView) view.findViewById(R.id.viewDate)).setText(dateFormat.format(item.getDate()));
+            }
+            ((TextView) view.findViewById(R.id.viewModel)).setText(item.getModel());
+            ((TextView) view.findViewById(R.id.viewVIN)).setText(item.getVin());
+            ((CheckBox) view.findViewById(R.id.chbIsSynced)).setChecked(item.getIssync() == 1);
+
+            return view;
+        }
+
+    }
+
+
+    // Фунция получает список Inspections из базу
+    public void RefreshList() {
+        // получим из базы список Актов
+        ArrayList<Inspection> inspectionList;
+
+        inspectionList = dbhelper.getInspectionList();
+
+        for (Inspection item: inspectionList) {
+            adapter.add(item);
+        }
+
+        return;
+    }
 
 
 

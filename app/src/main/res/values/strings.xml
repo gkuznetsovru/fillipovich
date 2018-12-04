@@ -20,4 +20,10 @@
     <string name="title_activity_select_order">Выберите ЗН</string>
     <string name="title_activity_start">Акты осмотра</string>
     <string name="dateorderhint">Дата заказ-наряда</string>
-</resources>
+    <string name="PhotoCo">Фото</string>
+    <string name="OrderNumber">Номер заказ-наряда</string>
+    <string name="OrderDate">Дата заказ-наряда</string>
+    <string name="IsSynced">Загружен</string>
+    <string name="VIN">VIN</string>
+    <string name="ModelName">Модель</string></resources>
+
