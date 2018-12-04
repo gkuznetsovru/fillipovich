@@ -33,7 +33,7 @@
             android:name=".SelectOrderActivity"
             android:label="@string/title_activity_select_order"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="ru.ovod.foto2.MainActivity" />
