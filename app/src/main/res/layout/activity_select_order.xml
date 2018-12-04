@@ -51,7 +51,7 @@
     <include
         android:id="@+id/include"
         layout="@layout/content_select_order"
-        android:layout_height="434dp"
+        android:layout_height="match_parent"
         android:visibility="visible"
         app:layout_anchor="@+id/app_bar"
         app:layout_anchorGravity="right|bottom" />
