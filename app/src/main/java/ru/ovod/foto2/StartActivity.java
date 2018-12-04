@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -87,6 +88,32 @@ public class StartActivity extends AppCompatActivity {
 
 
         GetInspectionListFromDB();*/
+    }
+
+
+
+    // подцепим меню
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.mainmenu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // получим идентификатор выбранного пункта меню
+        int id = item.getItemId();
+
+
+        // Операции для выбранного пункта меню
+        switch (id) {
+            case R.id.Menu_Settings:
+                Intent intent = new Intent(StartActivity.this,  Settings.class);
+                startActivity(intent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
 
@@ -198,7 +225,7 @@ public class StartActivity extends AppCompatActivity {
 
     private void startAddCarInspectionActivity(int id){
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("inspectionID", id);
+        intent.putExtra("InsId", id);
         startActivity(intent);
     }
 
@@ -215,12 +242,13 @@ public class StartActivity extends AppCompatActivity {
 
             if (item.getPhotoCo() > 0) { ((TextView) view.findViewById(R.id.viewPhotoCo)).setText(String.valueOf(item.getPhotoCo())); }
             ((TextView) view.findViewById(R.id.viewNumber)).setText(String.valueOf(item.getNumber()));
-            if (item.getDate().getTime() == 0) {
+            /*if (item.getDate().getTime() == 0) {
                 ((TextView) view.findViewById(R.id.viewDate)).setText("");
             }else {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("dd.mm.yyyy");
                 ((TextView) view.findViewById(R.id.viewDate)).setText(dateFormat.format(item.getDate()));
-            }
+            }*/
+            ((TextView) view.findViewById(R.id.viewDate)).setText(item.getDate());
             ((TextView) view.findViewById(R.id.viewModel)).setText(item.getModel());
             ((TextView) view.findViewById(R.id.viewVIN)).setText(item.getVin());
             ((CheckBox) view.findViewById(R.id.chbIsSynced)).setChecked(item.getIssync() == 1);

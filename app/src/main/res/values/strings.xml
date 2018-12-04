@@ -23,6 +23,7 @@
     <string name="PhotoCo">Фото</string>
     <string name="OrderNumber">Номер заказ-наряда</string>
     <string name="OrderDate">Дата заказ-наряда</string>
+    <string name="OrderDate_Short">Дата </string>
     <string name="IsSynced">Загружен</string>
     <string name="VIN">VIN</string>
     <string name="ModelName">Модель</string></resources>

@@ -64,6 +64,7 @@
             android:layout_marginBottom="@dimen/margin"
             android:layout_weight="1"
             android:text="@string/IsSynced"
+            android:clickable="false"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@+id/viewDate"
             app:layout_constraintTop_toTopOf="parent"

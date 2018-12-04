@@ -29,6 +29,7 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -48,6 +49,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
 import android.util.Log;
@@ -64,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     // Объявление глобальных переменных
     private Integer InspectionID =0; // InspectionID - текущий (активный) акт осмотра
     private String InspectionID_Number = ""; // Номер заказ-наряда, который привязан к выбранному InspectionID (объявлен выше)
-    private Integer OrderID = 0;  // OrderID
+    private Integer OrderID = 0;  // OrderID. Внимание !! Устанавливать через SetOrderID
     private EditText OrderEdit; //поле Edit с номером ЗН. Инициализируется OnCreate.
 
 
@@ -80,11 +82,13 @@ public class MainActivity extends AppCompatActivity {
     private File file;
     private File thumbnaul_file;
     private String path;
-    private TableRow SelectedTableRow;
+    //private TableRow SelectedTableRow;
+    private Button uploadbutton;
+
 
     TextView model;
     TextView vin;
-
+    TextView dateorder;
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
@@ -112,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
         path = Environment.getExternalStorageDirectory().toString();
         //tablelayout = findViewById(R.id.tablelayout);
         photoLayout = findViewById(R.id.phototablelayout);
+        uploadbutton = findViewById(R.id.uploadbutton);
 
         verifyStoragePermissions(this);
         dbhelper = new DBHelper(getApplicationContext());
@@ -119,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
 
         model = findViewById(R.id.model);
         vin = findViewById(R.id.vin);
+        dateorder = findViewById(R.id.dateorder);
 
         // Allow application use internet
         if (android.os.Build.VERSION.SDK_INT > 9) {
@@ -162,13 +168,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Операции для выбранного пункта меню
         switch (id) {
-            case R.id.Menu_ListInspections:
-                return true;
-            case R.id.Menu_OrdersFromServer:
-              // infoTextView.setText("Вы выбрали кошку!");
-                return true;
             case R.id.Menu_Settings:
-              //  infoTextView.setText("Вы выбрали котёнка!");
                 Intent intent = new Intent(MainActivity.this,  Settings.class);
                 startActivity(intent);
                 return true;
@@ -204,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (InspectionID_Number!=OrderEdit.getText().toString()) { // если предыдущий номер ЗН для сканирования был другой
-            OrderID=0; // сразу сбросим OrderID
+            setOrderID(0); // сразу сбросим OrderID
             InspectionID = GetInspectionIDByNumber(); // поищем тот что вбил мастер
 
             // Пока отключил проверку OrderId, чтоб время не терять на проверказ. Не знаю, верно это или нет
@@ -254,7 +254,7 @@ public class MainActivity extends AppCompatActivity {
             cursor.moveToFirst();
             //while (cursor.moveToNext()) {
             id = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ID));
-            OrderID = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ORDERID));
+            setOrderID(cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ORDERID)));
             Log.e("DB ", "Извлекли INSPECTION_ID: " + id);
             //}
         }
@@ -298,7 +298,7 @@ public class MainActivity extends AppCompatActivity {
         // почистим переменные
         OrderEdit.setText("");
         InspectionID = 0;
-        OrderID = 0;
+        setOrderID(0);
         InspectionID_Number = "";
         model.setText(getString(R.string.modelbaseline));
         vin.setText(getString(R.string.vinbaseline));
@@ -478,19 +478,27 @@ public class MainActivity extends AppCompatActivity {
             if (OrderID>0) {
                 OrderEdit.setText(GetNumberByOrderId(OrderID));  // получим OrderId
 
-                // пометим в базе, что файл сихронизирован
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(DBHelper.INSPECTION_NUMBER, OrderEdit.getText().toString());
-                contentValues.put(DBHelper.INSPECTION_ORDERID, OrderID);
-                int Inspect = database.update(DBHelper.INSPECTION, contentValues, DBHelper.INSPECTION_ID+"=?", new String[] { InspectionID.toString() });
-                Log.e("Изменили в базе ru.ovod.foto2.Inspection:", InspectionID.toString() );
-
                 GetOrderIdByNumber(); // заполним модель и VIN
+                SaveOrderInfoToInspection();
 
         }
 
         }
     }
+
+
+    private  void SaveOrderInfoToInspection() {
+        // зальём в нашу БД выбранную информаци по PY.
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(DBHelper.INSPECTION_NUMBER, OrderEdit.getText().toString());
+        contentValues.put(DBHelper.INSPECTION_MODEL, model.getText().toString());
+        contentValues.put(DBHelper.INSPECTION_VIN, vin.getText().toString());
+        contentValues.put(DBHelper.INSPECTION_DATE, dateorder.getText().toString());
+        contentValues.put(DBHelper.INSPECTION_ORDERID, OrderID);
+        int Inspect = database.update(DBHelper.INSPECTION, contentValues, DBHelper.INSPECTION_ID + "=?", new String[]{InspectionID.toString()});
+        Log.e("Изменили в локальной базе Inspection:", InspectionID.toString());
+    }
+
 
     private File createImageFile() throws IOException {
         // Create an image file name
@@ -714,9 +722,10 @@ public class MainActivity extends AppCompatActivity {
         if (dataset.RecordCount()>0)
         {
             dataset.GetRowByNumber(0);
-            OrderID = dataset.FieldByName_AsInteger("orderid");
+            setOrderID(dataset.FieldByName_AsInteger("orderid"));
             model.setText(dataset.FieldByName_AsString("model"));
             vin.setText(dataset.FieldByName_AsString("vin"));
+            dateorder.setText( dataset.FieldByName_AsString("date").substring(0,10));
 
         }
 
@@ -741,18 +750,35 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    /*private Date stringToDate(String aDate) {
+
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        Date date;
+        try {
+            date = format.parse(aDate);
+            //System.out.println(date);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return date;
+    }*/
+
     // функция устанавливает InspectionId (излекает данные из базы)
     public void SetInspectionId (Integer InsID)
     {
         InspectionID = InsID;
 
-        String SQL = "SELECT " + DBHelper.INSPECTION_NUMBER + ", " + DBHelper.INSPECTION_ORDERID + " "
+        String SQL = "SELECT " + DBHelper.INSPECTION_NUMBER + ", " + DBHelper.INSPECTION_ORDERID + ", "
+                + DBHelper.INSPECTION_MODEL + ", " + DBHelper.INSPECTION_VIN + ", " + DBHelper.INSPECTION_ISSYNC + ", " + DBHelper.INSPECTION_DATE + " "
                 + " FROM " + DBHelper.INSPECTION + " where " + DBHelper.INSPECTION_ID +" = "+InspectionID.toString()+" ";
         Cursor cursor = database.rawQuery(SQL, null);
         if (!cursor.isAfterLast()) {
             cursor.moveToFirst();
-            OrderID = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ORDERID));
+            setOrderID(cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ORDERID)));
             OrderEdit.setText( cursor.getString(cursor.getColumnIndex(DBHelper.INSPECTION_NUMBER)));
+            model.setText( cursor.getString(cursor.getColumnIndex(DBHelper.INSPECTION_MODEL)));
+            vin.setText( cursor.getString(cursor.getColumnIndex(DBHelper.INSPECTION_VIN)));
+            dateorder.setText(cursor.getString(cursor.getColumnIndex(DBHelper.INSPECTION_DATE)));
             InspectionID_Number=OrderEdit.getText().toString();
             Log.e("DB ", "Извлекли  данные по INSPECTION_ID: " + InspectionID.toString());
         }
@@ -769,15 +795,33 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if (InspectionID==0)  // если нет записи в базе с InspectionID (нет ни одной фото)
+
+        if  (OrderEdit.getText().length() == 0) {  // Проверим, что ЗН выбран
+            showToast("Укажите номер заказ-наряда.");
+            return;
+        }
+
+        if (InspectionID_Number!=OrderEdit.getText().toString()) { // если предыдущий номер ЗН для сканирования был другой
+            setOrderID(0); // сразу сбросим OrderID
+            InspectionID = GetInspectionIDByNumber(); // поищем тот что вбил мастер
+
+            if (InspectionID == 0) {  // Если 0, то  сгенерим новый
+                InspectionID = CreateNewInspection();
+            }
+            InspectionID_Number = OrderEdit.getText().toString();  // запомним текущий номер ЗН
+            //return;
+        }
+
+
+        if (InspectionID==0)  // если не определён акт осмотра (такого не текущий момент не должно быть)
         {
             showToast("Не выбран акт осмотра (или нет фотографий).");
             return;
         }
 
 
-        // зачистим перменны перед поискао
-        OrderID=0;
+        // зачистим переменны перед поиском
+        setOrderID(0);
         model.setText(getString(R.string.modelbaseline));
         vin.setText(getString(R.string.vinbaseline));
 
@@ -793,10 +837,17 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(questionIntent, REQUEST_ORDERID);
             //showToast("Не найден заказ-наряд с таким номером на сервере");
         }
+        else
+        {
+            // запишем в локальную базу обновлённую инфомрацию
+            SaveOrderInfoToInspection();
+        }
     }
 
 
+    public void setOrderID(Integer orderID) {
+        OrderID = orderID;
+        uploadbutton.setEnabled(OrderID>0); // отключим кнопку, если OrderID не опередлён
 
-
-
+    }
 }

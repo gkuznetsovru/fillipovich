@@ -7,13 +7,13 @@ public class Inspection {
     private Integer number;
     private Integer orderid;
     private Integer issync;
-    private Date date;
+    private String date;
     private String model;
     private String vin;
     private Integer photoCo;
 
 
-    public Inspection(Integer _inspectionid, Integer number, Integer orderid, Integer issync, Date date, String model, String vin) {
+    public Inspection(Integer _inspectionid, Integer number, Integer orderid, Integer issync, String date, String model, String vin) {
         this._inspectionid = _inspectionid;
         this.number = number;
         this.orderid = orderid;
@@ -55,11 +55,10 @@ public class Inspection {
         this.issync = issync;
     }
 
-    public Date getDate() {
-        return date;
+    public String getDate() { return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(String date) {
         this.date = date;
     }
 

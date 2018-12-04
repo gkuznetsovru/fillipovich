@@ -22,7 +22,7 @@ import java.util.Map;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    private static final int DB_VERSION = 6; // версия
+    private static final int DB_VERSION = 7; // версия
     private static final String DB_Name = "OvodOrders";  // имя локаьной базы данных
     private static final String TAGDB = "DATABASE_OPERATION";
 
@@ -65,7 +65,7 @@ public class DBHelper extends SQLiteOpenHelper {
 //            db.execSQL("drop table if exists " + PHOTO);
 
             String sql = "create table IF NOT EXISTS " + INSPECTION + "(" + INSPECTION_ID
-                    + " integer primary key AUTOINCREMENT," + INSPECTION_NUMBER + " text," + INSPECTION_DATE + " integer," + INSPECTION_MODEL + " text," + INSPECTION_VIN + " text,"
+                    + " integer primary key AUTOINCREMENT," + INSPECTION_NUMBER + " text," + INSPECTION_DATE + " string," + INSPECTION_MODEL + " text," + INSPECTION_VIN + " text,"
                     + INSPECTION_ORDERID + " integer," + INSPECTION_ISSYNC + " integer" + ")";
 
             Log.e(TAGDB, sql);
@@ -113,7 +113,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 Integer InsID = cursor.getInt(cursor.getColumnIndex(INSPECTION_ID));
                 Integer num = cursor.getInt(cursor.getColumnIndex(INSPECTION_NUMBER));
                 Integer OrdID = cursor.getInt(cursor.getColumnIndex(INSPECTION_ORDERID));
-                Date dt = new Date(cursor.getLong(cursor.getColumnIndex(INSPECTION_DATE)));
+                String dt = cursor.getString(cursor.getColumnIndex(INSPECTION_DATE));
                 String model = cursor.getString(cursor.getColumnIndex(INSPECTION_MODEL));
                 String vin = cursor.getString(cursor.getColumnIndex(INSPECTION_VIN));
                 Integer isSynced = cursor.getInt(cursor.getColumnIndex(INSPECTION_ISSYNC));
@@ -148,7 +148,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 Integer InsID = cursor.getInt(cursor.getColumnIndex(INSPECTION_ID));
                 Integer num = cursor.getInt(cursor.getColumnIndex(INSPECTION_NUMBER));
                 Integer OrdID = cursor.getInt(cursor.getColumnIndex(INSPECTION_ORDERID));
-                Date dt = new Date(cursor.getLong(cursor.getColumnIndex(INSPECTION_DATE)));
+                String dt = cursor.getString(cursor.getColumnIndex(INSPECTION_DATE));
                 String model = cursor.getString(cursor.getColumnIndex(INSPECTION_MODEL));
                 String vin = cursor.getString(cursor.getColumnIndex(INSPECTION_VIN));
                 Integer isSynced = cursor.getInt(cursor.getColumnIndex(INSPECTION_ISSYNC));
@@ -180,7 +180,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 Integer InsID = cursor.getInt(cursor.getColumnIndex(INSPECTION_ID));
                 Integer num = cursor.getInt(cursor.getColumnIndex(INSPECTION_NUMBER));
                 Integer OrdID = cursor.getInt(cursor.getColumnIndex(INSPECTION_ORDERID));
-                Date dt = new Date(cursor.getLong(cursor.getColumnIndex(INSPECTION_DATE)));
+                String dt = cursor.getString(cursor.getColumnIndex(INSPECTION_DATE));
                 String model = cursor.getString(cursor.getColumnIndex(INSPECTION_MODEL));
                 String vin = cursor.getString(cursor.getColumnIndex(INSPECTION_VIN));
                 Integer isSynced = cursor.getInt(cursor.getColumnIndex(INSPECTION_ISSYNC));
@@ -204,7 +204,8 @@ public class DBHelper extends SQLiteOpenHelper {
         contentValues.put(INSPECTION_NUMBER, inspection.getNumber());
         if (inspection.getOrderid() > 0) { contentValues.put(INSPECTION_ORDERID, inspection.getOrderid()); }
         contentValues.put(INSPECTION_ISSYNC, inspection.getIssync());
-        if (inspection.getDate() != null) { contentValues.put(INSPECTION_DATE, inspection.getDate().getTime()); }
+//        if (inspection.getDate() != null) { contentValues.put(INSPECTION_DATE, inspection.getDate().getTime()); }
+        if (inspection.getDate() != null) { contentValues.put(INSPECTION_DATE, inspection.getDate()); }
         if (inspection.getModel() != null) { contentValues.put(INSPECTION_MODEL, inspection.getModel()); }
         if (inspection.getVin() != null) { contentValues.put(INSPECTION_VIN, inspection.getVin()); }
 
