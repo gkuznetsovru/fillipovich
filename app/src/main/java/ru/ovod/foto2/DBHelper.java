@@ -104,7 +104,8 @@ public class DBHelper extends SQLiteOpenHelper {
         SQLiteDatabase database = this.getReadableDatabase();
         String SQL = "SELECT " + INSPECTION_ID + ", " + INSPECTION_NUMBER + ", " + INSPECTION_ORDERID + ", "
                 + INSPECTION_DATE + ", " + INSPECTION_MODEL + ", " + INSPECTION_VIN + ", " + INSPECTION_ISSYNC + ", "
-                + " (SELECT count(*) from  " + PHOTO + " where " + PHOTO + "." + PHOTO_INSPECTION + " = " + INSPECTION + "." + INSPECTION_ID + ") as coun"
+                + " (SELECT count(*) from  " + PHOTO + " where " + PHOTO + "." + PHOTO_INSPECTION + " = " + INSPECTION + "." + INSPECTION_ID + ") as coun, "
+                + " (SELECT count(*) from  " + PHOTO + " where " + PHOTO + "." + PHOTO_INSPECTION + " = " + INSPECTION + "." + INSPECTION_ID + " and "+PHOTO + "." + PHOTO_ISSYNC + " = 0 " +") as coun_no_sync" // количество не сихронизированных фото
                 + " FROM " + INSPECTION
                 + " Order by " + INSPECTION_ID + " desc";
         Cursor cursor = database. rawQuery(SQL, null);
@@ -116,7 +117,8 @@ public class DBHelper extends SQLiteOpenHelper {
                 String dt = cursor.getString(cursor.getColumnIndex(INSPECTION_DATE));
                 String model = cursor.getString(cursor.getColumnIndex(INSPECTION_MODEL));
                 String vin = cursor.getString(cursor.getColumnIndex(INSPECTION_VIN));
-                Integer isSynced = cursor.getInt(cursor.getColumnIndex(INSPECTION_ISSYNC));
+                Integer isSynced = cursor.getInt(cursor.getColumnIndex("coun_no_sync"));
+                if (isSynced>0) {isSynced=0;} else {isSynced=1;}  // если есть не сихронные фотки, то галочнку уберём
                 Integer Coun = cursor.getInt(cursor.getColumnIndex("coun"));
 
                 item = new Inspection(InsID, num, OrdID, isSynced, dt, model, vin);
@@ -140,6 +142,7 @@ public class DBHelper extends SQLiteOpenHelper {
             String SQL = "SELECT " + INSPECTION_ID + ", " + INSPECTION_NUMBER + ", " + INSPECTION_ORDERID + ", "
                     + INSPECTION_DATE + ", " + INSPECTION_MODEL + ", " + INSPECTION_VIN + ", " + INSPECTION_ISSYNC + ", "
                     + " (SELECT count(*) from  " + PHOTO + " where " + PHOTO + "." + PHOTO_INSPECTION + " = " + INSPECTION + "." + INSPECTION_ID + ") as coun"
+                    + " (SELECT count(*) from  " + PHOTO + " where " + PHOTO + "." + PHOTO_INSPECTION + " = " + INSPECTION + "." + INSPECTION_ID + " and "+PHOTO + "." + PHOTO_ISSYNC + " = 0 " +") as coun_no_sync" // количество не сихронизированных фото
                     + " FROM " + INSPECTION
                     + " WHERE " + INSPECTION_ID + " = " + Integer.toString(inspectionID);
             Cursor cursor = database.rawQuery(SQL, null);
@@ -151,7 +154,8 @@ public class DBHelper extends SQLiteOpenHelper {
                 String dt = cursor.getString(cursor.getColumnIndex(INSPECTION_DATE));
                 String model = cursor.getString(cursor.getColumnIndex(INSPECTION_MODEL));
                 String vin = cursor.getString(cursor.getColumnIndex(INSPECTION_VIN));
-                Integer isSynced = cursor.getInt(cursor.getColumnIndex(INSPECTION_ISSYNC));
+                Integer isSynced = cursor.getInt(cursor.getColumnIndex("coun_no_sync"));
+                if (isSynced>0) {isSynced=0;} else {isSynced=1;}  // если есть не сихронные фотки, то галочнку уберём
                 Integer Coun = cursor.getInt(cursor.getColumnIndex("coun"));
 
                 item = new Inspection(InsID, num, OrdID, isSynced, dt, model, vin);
@@ -172,6 +176,7 @@ public class DBHelper extends SQLiteOpenHelper {
             String SQL = "SELECT " + INSPECTION_ID + ", " + INSPECTION_NUMBER + ", " + INSPECTION_ORDERID + ", "
                     + INSPECTION_DATE + ", " + INSPECTION_MODEL + ", " + INSPECTION_VIN + ", " + INSPECTION_ISSYNC + ", "
                     + " (SELECT count(*) from  " + PHOTO + " where " + PHOTO + "." + PHOTO_INSPECTION + " = " + INSPECTION + "." + INSPECTION_ID + ") as coun"
+                    + " (SELECT count(*) from  " + PHOTO + " where " + PHOTO + "." + PHOTO_INSPECTION + " = " + INSPECTION + "." + INSPECTION_ID + " and "+PHOTO + "." + PHOTO_ISSYNC + " = 0 " +") as coun_no_sync" // количество не сихронизированных фото
                     + " FROM " + INSPECTION
                     + " WHERE " + INSPECTION_NUMBER + " = " + Integer.toString(number);
             Cursor cursor = database.rawQuery(SQL, null);
@@ -183,7 +188,8 @@ public class DBHelper extends SQLiteOpenHelper {
                 String dt = cursor.getString(cursor.getColumnIndex(INSPECTION_DATE));
                 String model = cursor.getString(cursor.getColumnIndex(INSPECTION_MODEL));
                 String vin = cursor.getString(cursor.getColumnIndex(INSPECTION_VIN));
-                Integer isSynced = cursor.getInt(cursor.getColumnIndex(INSPECTION_ISSYNC));
+                Integer isSynced = cursor.getInt(cursor.getColumnIndex("coun_no_sync"));
+                if (isSynced>0) {isSynced=0;} else {isSynced=1;}  // если есть не сихронные фотки, то галочнку уберём
                 Integer Coun = cursor.getInt(cursor.getColumnIndex("coun"));
 
                 item = new Inspection(InsID, num, OrdID, isSynced, dt, model, vin);

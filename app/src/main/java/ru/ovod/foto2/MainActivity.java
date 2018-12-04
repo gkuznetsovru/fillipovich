@@ -177,6 +177,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -850,4 +851,6 @@ public class MainActivity extends AppCompatActivity {
         uploadbutton.setEnabled(OrderID>0); // отключим кнопку, если OrderID не опередлён
 
     }
+
+
 }

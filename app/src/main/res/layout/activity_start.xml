@@ -37,7 +37,9 @@
 
 
 
-    <include layout="@layout/content_start" />
+    <include
+        android:id="@+id/include20"
+        layout="@layout/content_start" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab_neworder"

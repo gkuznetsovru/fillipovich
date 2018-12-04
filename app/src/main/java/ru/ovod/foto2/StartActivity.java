@@ -91,6 +91,12 @@ public class StartActivity extends AppCompatActivity {
     }
 
 
+    // обновим список при возврате из дочерних Activity
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        RefreshList();
+    }
 
     // подцепим меню
     @Override
@@ -144,7 +150,6 @@ public class StartActivity extends AppCompatActivity {
         if (!cursor.isClosed()) {cursor.close();}
         return;
     }
-
 
 
     // функция доабвление строки
@@ -261,8 +266,17 @@ public class StartActivity extends AppCompatActivity {
 
     // Фунция получает список Inspections из базу
     public void RefreshList() {
+
+        // сначала почистим ListView
+        //ListView items = (ListView) findViewById(R.id.items);
+        //items.removeAllViewsInLayout();
+        //adapter.notifyDataSetChanged();
+
         // получим из базы список Актов
         ArrayList<Inspection> inspectionList;
+
+        //inspectionList.clear();
+        //adapter.notifyDataSetChanged();
 
         inspectionList = dbhelper.getInspectionList();
 
