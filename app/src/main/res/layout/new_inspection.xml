@@ -126,6 +126,11 @@
             android:contentDescription="@string/imageDescription"
             tools:srcCompat="@tools:sample/avatars" />
 
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/imagegallery"
+            android:layout_width="match_parent"
+            android:layout_height="100dp" />
+
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="100dp"
