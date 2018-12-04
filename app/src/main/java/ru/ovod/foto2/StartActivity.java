@@ -39,6 +39,8 @@ public class StartActivity extends AppCompatActivity {
 
     ItemsAdapter adapter;
 
+    ArrayList<Inspection> inspectionList;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -211,23 +213,6 @@ public class StartActivity extends AppCompatActivity {
         tableInspections.addView(tableRow);
     }
 
-
-
-    // Determines if Action bar item was selected. If true then do corresponding action.
- /*   @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        //handle presses on the action bar items
-        switch (item.getItemId()) {
-
-            case R.id.acti:
-                startAddCarInspectionActivity(0);
-                return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }*/
-
     private void startAddCarInspectionActivity(int id){
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("InsId", id);
@@ -268,18 +253,16 @@ public class StartActivity extends AppCompatActivity {
     public void RefreshList() {
 
         // сначала почистим ListView
-        //ListView items = (ListView) findViewById(R.id.items);
-        //items.removeAllViewsInLayout();
-        //adapter.notifyDataSetChanged();
+        if (inspectionList!=null) {
+            inspectionList.clear();
+            adapter.clear();
+            adapter.notifyDataSetChanged();
+        }
+
 
         // получим из базы список Актов
-        ArrayList<Inspection> inspectionList;
-
-        //inspectionList.clear();
-        //adapter.notifyDataSetChanged();
 
         inspectionList = dbhelper.getInspectionList();
-
         for (Inspection item: inspectionList) {
             adapter.add(item);
         }
