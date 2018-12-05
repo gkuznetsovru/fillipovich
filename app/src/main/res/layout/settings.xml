@@ -29,21 +29,30 @@
                 android:layout_width="wrap_content"
                 android:layout_height="29dp"
                 android:layout_marginStart="40dp"
-                android:layout_marginTop="28dp"
+                android:layout_marginTop="84dp"
                 android:text="@string/ClearAll"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/VersionText" />
+                app:layout_constraintTop_toBottomOf="@+id/checkedTextView" />
 
             <Button
                 android:id="@+id/button5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="40dp"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="28dp"
                 android:onClick="ClickClearFileAndDB"
                 android:text="@string/Text_ClearsAll"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+            <CheckedTextView
+                android:id="@+id/checkedTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="40dp"
+                android:text="CheckedTextView"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:layout_editor_absoluteY="73dp" />
 
         </android.support.constraint.ConstraintLayout>
     </android.support.v4.widget.NestedScrollView>

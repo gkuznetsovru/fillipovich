@@ -1,6 +1,8 @@
 package ru.ovod.foto2;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Environment;
@@ -20,6 +22,12 @@ public class Settings extends Activity {
     private DBHelper dbhelper;
     TextView versionText;
 
+
+    public static final String APP_PREFERENCES = "ovodsettings";
+    public static final String APP_PREFERENCES_COUNTER = "counter_cols";
+    private SharedPreferences mSettings;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,6 +39,10 @@ public class Settings extends Activity {
 
         versionText=findViewById(R.id.VersionText);
         versionText.setText(" ФотоОвод. Версия "+BuildConfig.VERSION_NAME);
+
+
+        mSettings = getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
+        mInfoTextView = (TextView) findViewById(R.id.textViewInfo)
     }
 
     @Override
