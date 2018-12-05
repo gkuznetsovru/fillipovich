@@ -6,6 +6,7 @@ import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -13,9 +14,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.drawable.Drawable;
+import android.media.ExifInterface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.StrictMode;
@@ -53,6 +56,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -75,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText OrderEdit; //поле Edit с номером ЗН. Инициализируется OnCreate.
 
 
-    DBHelper dbhelper; // класс,  в котором задана структура нашей базы
+    DBHelper dbhelper; // класс,  в котором задана структура нашей локальной базы
     SQLiteDatabase database;  // база данных SQLite - с ней работаем в данном классе
     DataSet dataset = new DataSet(); // общий класс для доступа к базе овода
 
@@ -500,12 +504,67 @@ public class MainActivity extends AppCompatActivity {
 
 
     // функция поворота изображения   // http://qaru.site/questions/12168/why-does-an-image-captured-using-camera-intent-gets-rotated-on-some-devices-on-android
-    public static Bitmap rotateImage(Bitmap source, float angle) {
+    /*public static Bitmap rotateImage(Bitmap source, float angle) {
         Matrix matrix = new Matrix();
         matrix.postRotate(angle);
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix,
                 true);
+    }*/
+
+
+    // функция сжатия изображения из примера  https://startandroid.ru/ru/uroki/vse-uroki-spiskom/372-urok-160-risovanie-bitmap-chtenie-izobrazhenij-bolshogo-razmera.html
+    public static Bitmap decodeSampledBitmapFromResource(String path,
+                                                         int reqWidth, int reqHeight) {
+
+        // Читаем с inJustDecodeBounds=true для определения размеров
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(path, options);
+
+        // Вычисляем inSampleSize
+        options.inSampleSize = calculateInSampleSize(options, reqWidth,
+                reqHeight);
+
+        // Читаем с использованием inSampleSize коэффициента
+        options.inJustDecodeBounds = false;
+        return BitmapFactory.decodeFile(path, options);
     }
+
+
+
+    // функция возвращает угол для поворота изображения
+    private static Integer angleToReturn(Context context, Uri selectedImage) throws IOException {
+
+        InputStream input = context.getContentResolver().openInputStream(selectedImage);
+        ExifInterface ei;
+        if (Build.VERSION.SDK_INT > 23)
+            ei = new ExifInterface(input);
+        else
+            ei = new ExifInterface(selectedImage.getPath());
+
+        int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+
+        switch (orientation) {
+            case ExifInterface.ORIENTATION_ROTATE_90:
+                return 90;
+            case ExifInterface.ORIENTATION_ROTATE_180:
+                return 180;
+            case ExifInterface.ORIENTATION_ROTATE_270:
+                return 270;
+            default:
+                return 0;
+        }
+    }
+
+
+    public static Bitmap RotateBitmap(Bitmap source, float angle)
+    {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+    }
+
+
 
     // определим функцию получени резултатов (обращение к другим формам или активностя)
     @Override
@@ -515,6 +574,7 @@ public class MainActivity extends AppCompatActivity {
 
         // обработаем получение фото
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+
 
             // запишем информацию о фото в базу
             ContentValues contentValues = new ContentValues();
@@ -543,7 +603,26 @@ public class MainActivity extends AppCompatActivity {
                 // сформируем сразу Preview
                 int px = 85;
                 Bitmap myBitmap = decodeSampledBitmapFromResource( file.getAbsolutePath(), px, px);
+
+                Integer angle = 0; // по умолчанию не поворачиваем
+                try {
+                    angle = angleToReturn( getApplicationContext(),Uri.fromFile(file));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                if (angle>0) {
+                    myBitmap = RotateBitmap(myBitmap, angle);  // перевернём Preview
+
+                    // заодно перевернём большое изображение
+                    //Bitmap bigbitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                    //bigbitmap = RotateBitmap(bigbitmap, angle);  // перевернём Preview
+                    //saveBitmap(bigbitmap, file.getPath());
+
+
+                }
                 saveBitmap(myBitmap, thumbnaul_file.getPath());
+
                 MyImage.setImageURI(Uri.fromFile(thumbnaul_file));
             }
 
@@ -611,6 +690,7 @@ public class MainActivity extends AppCompatActivity {
         //operationlog.setText(file.getPath()+file.getName());
         outputFileUri =  Uri.fromFile(file);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
+        intent.putExtra(MediaStore.EXTRA_SCREEN_ORIENTATION, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
 
     }
@@ -708,23 +788,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    // функция сжатия изображения из примера  https://startandroid.ru/ru/uroki/vse-uroki-spiskom/372-urok-160-risovanie-bitmap-chtenie-izobrazhenij-bolshogo-razmera.html
-    public static Bitmap decodeSampledBitmapFromResource(String path,
-                                                         int reqWidth, int reqHeight) {
-
-        // Читаем с inJustDecodeBounds=true для определения размеров
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(path, options);
-
-        // Вычисляем inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth,
-                reqHeight);
-
-        // Читаем с использованием inSampleSize коэффициента
-        options.inJustDecodeBounds = false;
-        return BitmapFactory.decodeFile(path, options);
-    }
 
     // функция сжатия изображения из примера  https://startandroid.ru/ru/uroki/vse-uroki-spiskom/372-urok-160-risovanie-bitmap-chtenie-izobrazhenij-bolshogo-razmera.html
     public static int calculateInSampleSize(BitmapFactory.Options options,

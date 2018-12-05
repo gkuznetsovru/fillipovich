@@ -3,6 +3,7 @@ package ru.ovod.foto2;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -47,8 +48,8 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.ViewHolder> 
         int px = 85;
         File file = new File(path,galleryList.get(i).getFilename_thumdnail());
         Bitmap bitmap = decodeSampledBitmapFromResource(file.getAbsolutePath(), px, px);
-        Log.d("log", String.format("Required size = %s, bitmap size = %sx%s, byteCount = %s",
-                px, bitmap.getWidth(), bitmap.getHeight(), bitmap.getByteCount()));
+        //Log.d("log", String.format("Required size = %s, bitmap size = %sx%s, byteCount = %s",
+//                px, bitmap.getWidth(), bitmap.getHeight(), bitmap.getByteCount()));
         viewHolder.img.setTag(i);
         viewHolder.img.setImageBitmap(bitmap);
 
@@ -64,15 +65,26 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.ViewHolder> 
 
                 File file = new File(path,galleryList.get( (int) v.getTag()).getFilename());
                 Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
-                Log.d("log", String.format("bitmap size = %sx%s, byteCount = %s",
-                        bitmap.getWidth(), bitmap.getHeight(),
-                        (int) (bitmap.getByteCount() / 1024)));
+                //Log.d("log", String.format("bitmap size = %sx%s, byteCount = %s",
+//                        bitmap.getWidth(), bitmap.getHeight(),
+  //                      (int) (bitmap.getByteCount() / 1024)));
+
+
                 bigimageview.setImageBitmap(bitmap);
+                //bigimageview.setRotation(90);
             }
         });
 
 
     }
+
+    /*private static Bitmap rotateImage(Bitmap img, int degree) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(degree);
+        Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
+        img.recycle();
+        return rotatedImg;
+    }*/
 
     @Override
     public int getItemCount() {
