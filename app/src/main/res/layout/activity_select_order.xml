@@ -8,33 +8,21 @@
     tools:context=".SelectOrderActivity">
 
 
-    <android.support.design.widget.AppBarLayout
-        android:id="@+id/app_bar"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="130dp"
-        android:fitsSystemWindows="true"
-        android:theme="@style/AppTheme.PopupOverlay">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-
-        <android.support.design.widget.CollapsingToolbarLayout
-            android:id="@+id/toolbar_layout"
+        <include
+            android:id="@+id/include"
+            layout="@layout/content_select_order"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:fitsSystemWindows="true"
-            app:contentScrim="?attr/colorPrimary"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed"
-            app:toolbarId="@+id/toolbar">
+            android:visibility="visible"
+            app:layout_anchor="@+id/app_bar"
+            app:layout_anchorGravity="right|bottom" />
 
-            <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                app:layout_collapseMode="pin"
-                app:popupTheme="@style/AppTheme.AppBarOverlay" />
-
-        </android.support.design.widget.CollapsingToolbarLayout>
-    </android.support.design.widget.AppBarLayout>
-
+    </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
@@ -47,14 +35,6 @@
         app:layout_anchorGravity="right|bottom"
 
         app:srcCompat="@android:drawable/checkbox_on_background" />
-
-    <include
-        android:id="@+id/include"
-        layout="@layout/content_select_order"
-        android:layout_height="match_parent"
-        android:visibility="visible"
-        app:layout_anchor="@+id/app_bar"
-        app:layout_anchorGravity="right|bottom" />
 
 
 </android.support.design.widget.CoordinatorLayout>

@@ -89,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
     private String path;
     //private TableRow SelectedTableRow;
     private Button uploadbutton;
+    private String Tmp_Number = "";
 
 
     TextView model;
@@ -108,6 +109,17 @@ public class MainActivity extends AppCompatActivity {
 
     ProgressDialog dialog = null;
 
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+
+     /*   if ( (OrderEdit.getText().toString()=="") && (Tmp_Number.toString()!="") ) // если номер пуст, а был ранее указан, то опять его заполним. Эта функция нужна для возврат из формы выбора ЗН кнопкой Back
+        {
+            OrderEdit.setText(Tmp_Number);
+        }*/
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,6 +158,8 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+
 
 
         OrderEdit.setOnTouchListener(new View.OnTouchListener() {
@@ -543,13 +557,13 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == REQUEST_ORDERID && resultCode == RESULT_OK)
         {
             OrderID = (Integer) data.getIntExtra("OrdId",0);
-            if (OrderID>0) {
+            if (OrderID>0) { // если получен OrderID
                 OrderEdit.setText(GetNumberByOrderId(OrderID));  // получим OrderId
 
                 GetOrderIdByNumber(); // заполним модель и VIN
                 SaveOrderInfoToInspection();
 
-        }
+            }
 
         }
     }
@@ -903,6 +917,7 @@ public class MainActivity extends AppCompatActivity {
             //Intent intent = new Intent(MainActivity.this,  SelectOrderActivity.class );
             //startActivity(intent);
 
+            //Tmp_Number=OrderID.toString();
             Intent questionIntent = new Intent(MainActivity.this, SelectOrderActivity.class);
             startActivityForResult(questionIntent, REQUEST_ORDERID);
             //showToast("Не найден заказ-наряд с таким номером на сервере");
