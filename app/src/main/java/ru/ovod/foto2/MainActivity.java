@@ -13,7 +13,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.graphics.drawable.Drawable;
 import android.media.ExifInterface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -30,7 +29,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Html;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,8 +37,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -57,12 +53,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Random;
-import android.util.Log;
-
 
 
 import pub.devrel.easypermissions.EasyPermissions;
@@ -615,6 +608,8 @@ public class MainActivity extends AppCompatActivity {
                     myBitmap = RotateBitmap(myBitmap, angle);  // перевернём Preview
 
                     // заодно перевернём большое изображение
+                    PhotoAsyncTask photoAsync = new PhotoAsyncTask(angle,file);
+                    photoAsync.execute();
                     //Bitmap bigbitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
                     //bigbitmap = RotateBitmap(bigbitmap, angle);  // перевернём Preview
                     //saveBitmap(bigbitmap, file.getPath());
@@ -690,7 +685,9 @@ public class MainActivity extends AppCompatActivity {
         //operationlog.setText(file.getPath()+file.getName());
         outputFileUri =  Uri.fromFile(file);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
-        intent.putExtra(MediaStore.EXTRA_SCREEN_ORIENTATION, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        //intent.putExtra(MediaStore.EXTRA_SCREEN_ORIENTATION, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        intent.putExtra(MediaStore.EXTRA_SCREEN_ORIENTATION, ActivityInfo.SCREEN_ORIENTATION_FULL_USER); // фигня какая-то.. Не работает этот параметр
+       // SCREEN_ORIENTATION_SENSOR
         startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
 
     }

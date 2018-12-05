@@ -69,6 +69,12 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.ViewHolder> 
 //                        bitmap.getWidth(), bitmap.getHeight(),
   //                      (int) (bitmap.getByteCount() / 1024)));
 
+                if (bitmap==null)  // если большого изображения нет, то подсунем Preview (такой моежет быть, если изображение ещё сохраняется)
+                {
+                    file = new File(path,galleryList.get( (int) v.getTag()).getFilename_thumdnail());
+                    bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                }
+
 
                 bigimageview.setImageBitmap(bitmap);
                 //bigimageview.setRotation(90);
