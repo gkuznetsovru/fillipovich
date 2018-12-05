@@ -26,5 +26,7 @@
     <string name="OrderDate_Short">Дата </string>
     <string name="IsSynced">Загружен</string>
     <string name="VIN">VIN</string>
-    <string name="ModelName">Модель</string></resources>
+    <string name="ModelName">Модель</string>
+    <string name="ShowActs">Показывать синхронизированные акты осмотра</string>
+</resources>
 
