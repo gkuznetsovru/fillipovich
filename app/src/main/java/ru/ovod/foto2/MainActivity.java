@@ -417,8 +417,8 @@ public class MainActivity extends AppCompatActivity {
                 operationlog.append("Файл загружен на сервер:\n");
                 operationlog.append(event.getMessage() + "\n");
                 File file = new File(path+"/"+event.getMessage());
-                Boolean b = file.delete();
-                //Boolean b = Boolean.TRUE;
+                // Boolean b = file.delete();  // удаление файлов отключено
+
                 if (b)
                 {
                     operationlog.append("Файл удалён:\n");
@@ -455,14 +455,13 @@ public class MainActivity extends AppCompatActivity {
         return filename;
     }
 
+
+    // генерацияи случайного имени файла
     private String GetFileName() {
         String logFileName="";
-        //String logFileName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
-        //logFileName = OrderEdit.getText()+"_"+ logFileName+".jpg";
 
-        String gUF = generateUniqueFileName();
-        logFileName=OrderEdit.getText()+"_"+gUF+".jpg";
-
+        String gUF = generateUniqueFileName();  // получим случайную строку
+        logFileName=OrderEdit.getText()+"_"+gUF+".jpg";  
 
         // сгенерим сразу File для Thumbnail
         thumbnaul_file = new File(path+"/"+OrderEdit.getText()+"_"+gUF+"_small.jpg");
