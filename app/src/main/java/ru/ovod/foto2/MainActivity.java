@@ -11,6 +11,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -24,10 +25,13 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -50,6 +54,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Random;
 import android.util.Log;
@@ -143,14 +148,28 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+        OrderEdit.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                v.setFocusable(true);
+                v.setFocusableInTouchMode(true);
+                return false;
+            }
+        });
+
+
         // проверим полученнные парметры при активации формы
         Intent intent = getIntent();
         InspectionID  = intent.getIntExtra("InsId",0);
         if (InspectionID>0)  // если передан параметр, то извлечём вс из базы данных
-          {SetInspectionId(InspectionID);}
+          {SetInspectionId(InspectionID);
+           MyImage.requestFocus();
+          }
            else
                {NewOrder();} // иначе готовим форму для нового акта
 
+
+        GetPhotoList();
     }
 
     // подцепим меню
@@ -269,9 +288,44 @@ public class MainActivity extends AppCompatActivity {
     public  void GetPhotoList() {
 
         // проверим, что выбран (определён) акт осомотра
-        if (!CheckInspectionId()) {return;}
+        if (!CheckInspectionId(true)) {return;}
 
-        // очистикм tablelayout
+
+        RecyclerView recyclerView = (RecyclerView)findViewById(R.id.imagegallery);
+        recyclerView.setHasFixedSize(true);
+
+        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getApplicationContext(),4); // тут задаём количество фото в колонке
+        recyclerView.setLayoutManager(layoutManager);
+
+        ArrayList<CreateListPhoto> createLists = new ArrayList<>();;  // объявим массив фото
+
+
+        // получим из базы список Фото
+        String SQL = "SELECT " + DBHelper.PHOTO_ID + ", " + DBHelper.PHOTO_INSPECTION + ", "+ DBHelper.PHOTO_NAME_THUMBNAIL + ", "+ DBHelper.PHOTO_NAME
+                + " FROM " + DBHelper.PHOTO + " where " + DBHelper.PHOTO_INSPECTION + "="+InspectionID.toString();
+
+        Cursor cursor = database.rawQuery(SQL, null);
+
+        if (!cursor.isAfterLast()) {
+            while (cursor.moveToNext()) {  // цикл по списку фото
+
+                CreateListPhoto createList = new CreateListPhoto(); // объявим эксземпляр (фото)
+
+                Integer ph_id = (Integer) cursor.getInt(cursor.getColumnIndex(DBHelper.PHOTO_ID));
+                createList.setImage_id(ph_id);
+                createList.setFilename_thumdnail(cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME_THUMBNAIL)));
+                createList.setFilename(cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)));
+                createList.setImage_title(ph_id.toString()); // пока имени картинки дадим Photo_ID. Оно нигде не выводится
+                createLists.add(createList);
+                Log.e("DB ", "Добавилили фото в список: " + cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME_THUMBNAIL)));
+            }
+        }
+        if (!cursor.isClosed()) {cursor.close();}
+
+        PhotoAdapter adapter = new PhotoAdapter(createLists, getApplicationContext(), path, MyImage);
+        recyclerView.setAdapter(adapter);
+
+        /* // очистикм tablelayout
         //photoLayout.removeAllViewsInLayout();
 
         // получим из базы список Актов
@@ -288,6 +342,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if (!cursor.isClosed()) {cursor.close();}
+        */
         return;
     }
 
@@ -315,6 +370,8 @@ public class MainActivity extends AppCompatActivity {
 //            row.setBackgroundColor(getResources().getColor(android.R.color.transparent));
 //        }
 
+        OrderEdit.setFocusable(true);
+        OrderEdit.setFocusableInTouchMode(true);
         OrderEdit.requestFocus();
     }
 
@@ -428,6 +485,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    // функция поворота изображения   // http://qaru.site/questions/12168/why-does-an-image-captured-using-camera-intent-gets-rotated-on-some-devices-on-android
+    public static Bitmap rotateImage(Bitmap source, float angle) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix,
+                true);
+    }
+
     // определим функцию получени резултатов (обращение к другим формам или активностя)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -470,6 +535,8 @@ public class MainActivity extends AppCompatActivity {
 
             operationlog.append("Файл сформирован:\n");
             operationlog.append(file.getName() + "\n");
+
+            GetPhotoList(); // обновим список фото
         }
 
         // обработаем получение OrderID
@@ -534,12 +601,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public Boolean CheckInspectionId() {
+    // функция проверяет, определён ли InspectionId
+    public Boolean CheckInspectionId(Boolean silent) {  // silent - не показывать сообщение
 
         if (InspectionID == 0) {
             InspectionID = GetInspectionIDByNumber(); // поищем тот что вбил мастер
             if (InspectionID == 0) {
-                showToast("Не найден акт осмотра");
+                if (!silent) {showToast("Не найден акт осмотра");}
                 return Boolean.FALSE;
             }
         }
@@ -555,7 +623,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // проверим, что выбран коррретный акт
-        if (!CheckInspectionId()) {return;}
+        if (!CheckInspectionId(false)) {return;}
 
 
         if (OrderID==0) {
@@ -823,8 +891,9 @@ public class MainActivity extends AppCompatActivity {
 
         // зачистим переменны перед поиском
         setOrderID(0);
-        model.setText(getString(R.string.modelbaseline));
-        vin.setText(getString(R.string.vinbaseline));
+        model.setText("");
+        vin.setText("");
+        dateorder.setText("");
 
         GetOrderIdByNumber(); // ищем данные по нммеру акта
 

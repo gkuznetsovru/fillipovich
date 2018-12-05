@@ -1,9 +1,16 @@
 package ru.ovod.foto2;
 
+import java.util.ArrayList;
+
 public class CreateListPhoto {
-    private String image_title;
-    private String filename;
-    private Integer image_id;
+
+    private String image_title;  // имя фото для названия (пока нигже не использую)
+    private String filename_thumdnail; // имя Preview
+    private String filename; // имя полной фото
+    private Integer image_id; // PHOTO_ID
+
+    public CreateListPhoto() {
+    }
 
     public String getImage_title() {
         return image_title;
@@ -29,4 +36,17 @@ public class CreateListPhoto {
         this.filename = filename;
     }
 
+
+    public String getFilename_thumdnail() {
+        return filename_thumdnail;
+    }
+
+    public void setFilename_thumdnail(String filename_thumdnail) {
+        this.filename_thumdnail = filename_thumdnail;
+    }
+
+
 }
+
+
+
