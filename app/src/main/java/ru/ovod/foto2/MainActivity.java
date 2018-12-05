@@ -417,12 +417,13 @@ public class MainActivity extends AppCompatActivity {
                 operationlog.append("Файл загружен на сервер:\n");
                 operationlog.append(event.getMessage() + "\n");
                 File file = new File(path+"/"+event.getMessage());
+                Boolean b = true; // затычка вместо удаления файла
                 // Boolean b = file.delete();  // удаление файлов отключено
 
                 if (b)
                 {
-                    operationlog.append("Файл удалён:\n");
-                    operationlog.append(event.getMessage() + "\n");
+                    //operationlog.append("Файл удалён:\n");
+                    //operationlog.append(event.getMessage() + "\n");
 
                     // пометим в базе, что файл сихронизирован
                     ContentValues contentValues = new ContentValues();
@@ -461,7 +462,7 @@ public class MainActivity extends AppCompatActivity {
         String logFileName="";
 
         String gUF = generateUniqueFileName();  // получим случайную строку
-        logFileName=OrderEdit.getText()+"_"+gUF+".jpg";  
+        logFileName=OrderEdit.getText()+"_"+gUF+".jpg";
 
         // сгенерим сразу File для Thumbnail
         thumbnaul_file = new File(path+"/"+OrderEdit.getText()+"_"+gUF+"_small.jpg");
