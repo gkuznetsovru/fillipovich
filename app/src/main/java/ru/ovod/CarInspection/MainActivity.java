@@ -405,7 +405,7 @@ public class MainActivity extends AppCompatActivity {
                     ContentValues contentValues = new ContentValues();
                     contentValues.put(DBHelper.PHOTO_ISSYNC, 1);
                     int Inspect = database.update(DBHelper.PHOTO, contentValues, DBHelper.PHOTO_NAME+"=?", new String[] { event.getMessage() });
-                    Log.e("Фото сихронизированно в базе:", event.getMessage() );
+                    Log.e("Фото в базе:", event.getMessage() );
 
                 }
                 setCount_sending_images(count_sending_images-1); // уменьшим счётчик загружаемых изображений
@@ -620,7 +620,7 @@ public class MainActivity extends AppCompatActivity {
         contentValues.put(DBHelper.INSPECTION_DATE, dateorder.getText().toString());
         contentValues.put(DBHelper.INSPECTION_ORDERID, OrderID);
         int Inspect = database.update(DBHelper.INSPECTION, contentValues, DBHelper.INSPECTION_ID + "=?", new String[]{InspectionID.toString()});
-        Log.e("Изменили в локальной базе Inspection:", InspectionID.toString());
+        Log.e("Изменили в лок. базе:", InspectionID.toString());
     }
 
 
