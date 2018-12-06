@@ -1,17 +1,16 @@
 package ru.ovod.foto2;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.SharedPreferences;
+
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.TestLooperManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.File;
@@ -25,6 +24,7 @@ public class Settings extends Activity {
     TextView versionText;
     private CheckBox checkBox;
     private EditText editcolumns;
+    private ImageView iv;
 
     private SettingsHelper settingsHelper;
 
@@ -43,7 +43,10 @@ public class Settings extends Activity {
         editcolumns = findViewById(R.id.editcolumns);
 
         versionText=findViewById(R.id.VersionText);
-        versionText.setText(" ФотоОвод. Версия "+BuildConfig.VERSION_NAME);
+        versionText.setText("Версия "+BuildConfig.VERSION_NAME);
+
+        iv = findViewById(R.id.imageViewOvod);
+        iv.setImageResource(R.drawable.ovod);
 
     }
 
@@ -60,6 +63,14 @@ public class Settings extends Activity {
     protected void onPause() {
         super.onPause();
         settingsHelper.setShow_synchronized_acts(checkBox.isChecked());
+        try
+        {
+            settingsHelper.setCounter_cols( Integer.parseInt( editcolumns.getText().toString()));
+        }
+        catch(NumberFormatException nfe) // если ошибка парсинга
+        {
+            settingsHelper.setCounter_cols(4);  // то поставим 4
+        }
     }
 
     // метод читает установленные настройки
@@ -67,6 +78,7 @@ public class Settings extends Activity {
     protected void onResume() {
         super.onResume();
         checkBox.setChecked(settingsHelper.getShow_synchronized_acts());
+        editcolumns.setText(settingsHelper.getCounter_cols().toString());
     }
 
     @Override

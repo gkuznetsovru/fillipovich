@@ -28,5 +28,6 @@
     <string name="VIN">VIN</string>
     <string name="ModelName">Модель</string>
     <string name="ShowActs">Показывать синхронизированные акты осмотра</string>
+    <string name="CenterOvod">Автоцентр Овод</string>
 </resources>
 

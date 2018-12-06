@@ -86,7 +86,6 @@ public class MainActivity extends AppCompatActivity {
     private File file;
     private File thumbnaul_file;
     private String path;
-    //private TableRow SelectedTableRow;
     private Button uploadbutton;
     private String Tmp_Number = "";
 
@@ -309,14 +308,14 @@ public class MainActivity extends AppCompatActivity {
         RecyclerView recyclerView = (RecyclerView)findViewById(R.id.imagegallery);
         recyclerView.setHasFixedSize(true);
 
-        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getApplicationContext(),4); // тут задаём количество фото в колонке
+        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getApplicationContext(),settingshelper.getCounter_cols()); // тут задаём количество фото в колонке
         recyclerView.setLayoutManager(layoutManager);
 
         ArrayList<CreateListPhoto> createLists = new ArrayList<>();;  // объявим массив фото
 
 
         // получим из базы список Фото
-        String SQL = "SELECT " + DBHelper.PHOTO_ID + ", " + DBHelper.PHOTO_INSPECTION + ", "+ DBHelper.PHOTO_NAME_THUMBNAIL + ", "+ DBHelper.PHOTO_NAME
+        String SQL = "SELECT " + DBHelper.PHOTO_ID + ", " + DBHelper.PHOTO_INSPECTION + ", "+ DBHelper.PHOTO_NAME_THUMBNAIL + ", "+ DBHelper.PHOTO_NAME  + ", "+ DBHelper.PHOTO_ISSYNC
                 + " FROM " + DBHelper.PHOTO + " where " + DBHelper.PHOTO_INSPECTION + "="+InspectionID.toString();
 
         Cursor cursor = database.rawQuery(SQL, null);
@@ -331,6 +330,7 @@ public class MainActivity extends AppCompatActivity {
                 createList.setFilename_thumdnail(cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME_THUMBNAIL)));
                 createList.setFilename(cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)));
                 createList.setImage_title(ph_id.toString()); // пока имени картинки дадим Photo_ID. Оно нигде не выводится
+                createList.setIsSync((Integer) cursor.getInt(cursor.getColumnIndex(DBHelper.PHOTO_ISSYNC))); // пока имени картинки дадим Photo_ID. Оно нигде не выводится
                 createLists.add(createList);
                 Log.e("DB ", "Добавилили фото в список: " + cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME_THUMBNAIL)));
             }
@@ -340,24 +340,6 @@ public class MainActivity extends AppCompatActivity {
         PhotoAdapter adapter = new PhotoAdapter(createLists, getApplicationContext(), path, MyImage);
         recyclerView.setAdapter(adapter);
 
-        /* // очистикм tablelayout
-        //photoLayout.removeAllViewsInLayout();
-
-        // получим из базы список Актов
-        String SQL = "SELECT " + DBHelper.PHOTO_ID + ", " + DBHelper.PHOTO_INSPECTION + ", "+ DBHelper.PHOTO_NAME
-                + " FROM " + DBHelper.PHOTO + " where " + DBHelper.PHOTO_INSPECTION + "="+InspectionID.toString();
-
-        Cursor cursor = database.rawQuery(SQL, null);
-        if (!cursor.isAfterLast()) {
-            while (cursor.moveToNext()) {
-                Integer PhoID = cursor.getInt(cursor.getColumnIndex(DBHelper.PHOTO_ID));
-                String PhoNa = cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME));
-                AddTableRowPhoto(PhoNa,PhoID);
-                Log.e("DB ", "Добавилили фото в список: " + PhoNa);
-            }
-        }
-        if (!cursor.isClosed()) {cursor.close();}
-        */
         return;
     }
 
@@ -378,12 +360,6 @@ public class MainActivity extends AppCompatActivity {
     //  подготовим форму для формирование нового акта
     public void NewOrder() {
         ClearInspection();
-
-        // в списке актов сбросим "активный" акт
-//        for (int i = 0; i < tablelayout.getChildCount(); i++) {
-//            View row = tablelayout.getChildAt(i);
-//            row.setBackgroundColor(getResources().getColor(android.R.color.transparent));
-//        }
 
         OrderEdit.setFocusable(true);
         OrderEdit.setFocusableInTouchMode(true);
@@ -448,6 +424,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    // генерация уникального имени файла
     String generateUniqueFileName() {
         String filename = "";
         long millis = System.currentTimeMillis();
@@ -499,15 +476,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
-
-    // функция поворота изображения   // http://qaru.site/questions/12168/why-does-an-image-captured-using-camera-intent-gets-rotated-on-some-devices-on-android
-    /*public static Bitmap rotateImage(Bitmap source, float angle) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(angle);
-        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix,
-                true);
-    }*/
 
 
     // функция сжатия изображения из примера  https://startandroid.ru/ru/uroki/vse-uroki-spiskom/372-urok-160-risovanie-bitmap-chtenie-izobrazhenij-bolshogo-razmera.html
@@ -612,14 +580,9 @@ public class MainActivity extends AppCompatActivity {
                 if (angle>0) {
                     myBitmap = RotateBitmap(myBitmap, angle);  // перевернём Preview
 
-                    // заодно перевернём большое изображение
+                    // заодно перевернём большое изображение в асинхронном потоке
                     PhotoAsyncTask photoAsync = new PhotoAsyncTask(angle,file);
                     photoAsync.execute();
-                    //Bitmap bigbitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
-                    //bigbitmap = RotateBitmap(bigbitmap, angle);  // перевернём Preview
-                    //saveBitmap(bigbitmap, file.getPath());
-
-
                 }
                 saveBitmap(myBitmap, thumbnaul_file.getPath());
 
@@ -648,6 +611,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    // запись в локальную базу информации об Inspection
     private  void SaveOrderInfoToInspection() {
         // зальём в нашу БД выбранную информаци по PY.
         ContentValues contentValues = new ContentValues();
@@ -661,7 +625,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private File createImageFile() throws IOException {
+    /*private File createImageFile() throws IOException {
         // Create an image file name
         String timeStamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
@@ -672,32 +636,23 @@ public class MainActivity extends AppCompatActivity {
                 storageDir
         );
 
-        // Save a file: path for use with ACTION_VIEW intents
-        //mCurrentPhotoPath = image.getAbsolutePath();
-
-
-
-
         return image;
-    }
+    } */
 
 
     private void saveFullImage(String fn) {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         file = new File(path,
                 fn);
-//                "Test.jpg");
-        //operationlog.setText(file.getPath()+file.getName());
         outputFileUri =  Uri.fromFile(file);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
         //intent.putExtra(MediaStore.EXTRA_SCREEN_ORIENTATION, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         intent.putExtra(MediaStore.EXTRA_SCREEN_ORIENTATION, ActivityInfo.SCREEN_ORIENTATION_FULL_USER); // фигня какая-то.. Не работает этот параметр
-       // SCREEN_ORIENTATION_SENSOR
         startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
 
     }
 
-    // функция проверяет, определён ли InspectionId
+    // функция проверяет, определён ли InspectionId и вызвает функции формирование InspectionId
     public Boolean CheckInspectionId(Boolean silent) {  // silent - не показывать сообщение
 
         if (InspectionID == 0) {
@@ -741,26 +696,19 @@ public class MainActivity extends AppCompatActivity {
         if (!cursor.isAfterLast()) {
             while (cursor.moveToNext()) {
                 // отправка файла
+                operationlog.append("Начало отправки файла:\n");
+                operationlog.append(cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)) + "\n");
                 Log.e("DB ", "Начали отправку файла: " + cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)).toString() );
                 setCount_sending_images(count_sending_images+1);
                 ru.ovod.foto2.NetworkRelatedClass.NetworkCall.fileUpload(path+"/"+cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)).toString(), new ru.ovod.foto2.ModelClass.ImageSenderInfo(OrderID.toString(), OrderEdit.getText().toString() ));
             }
         }
+        else
+        {
+            showToast("Все изображения уже залиты на севрер.");
+        }
         if (!cursor.isClosed()) {cursor.close();}
 
-/*
-        File directory = new File(path);
-        File[] files = directory.listFiles();
-        //operationlog.append("Size: "+ files.length+"\n" );
-        for (int i = 0; i < files.length; i++)
-        {
-            if (files[i].getName().contains("jpg")) {
-                operationlog.append("Начало отправки файла:\n");
-                operationlog.append(files[i].getName() + "\n");
-                ru.ovod.foto2.NetworkRelatedClass.NetworkCall.fileUpload(path+"/"+files[i].getName(), new ru.ovod.foto2.ModelClass.ImageSenderInfo(OrderID.toString(), OrderEdit.getText().toString() ));
-                //break;
-            }
-        }*/
     }
 
     @Override
@@ -900,20 +848,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-    /*private Date stringToDate(String aDate) {
-
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-        Date date;
-        try {
-            date = format.parse(aDate);
-            //System.out.println(date);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return date;
-    }*/
-
     // функция устанавливает InspectionId (излекает данные из базы)
     public void SetInspectionId (Integer InsID)
     {
@@ -992,6 +926,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    // Setter для OrderID.  Должен отключать кнопку
     public void setOrderID(Integer orderID) {
         OrderID = orderID;
 
@@ -1001,20 +936,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
+    // Setter для счётчкиа выгружаемых изображений. Меняем кнопку Upload
     public void setCount_sending_images(Integer count_sending_images) {
-        this.count_sending_images = count_sending_images;
         if (count_sending_images>0)
         {
-            uploadbutton.setText("Идёт загрузка фотографий.");
+            uploadbutton.setText("Идёт отправка фотографий.");
             uploadbutton.setEnabled(false); // отключим кнопку, если идёт  отравка фото
         }
         else
         {
             uploadbutton.setText(getString(R.string.uploadtestbutton));
             uploadbutton.setEnabled(true); // отключим кнопку, если идёт  отравка фото
+            if (this.count_sending_images > count_sending_images)  // если предыдущее значение было больше 0, то обновим список Preview (чтоб наложить изображение)
+            {
+                GetPhotoList();
+            }
         }
+        this.count_sending_images = count_sending_images;
     }
+
+
 
 
 

@@ -1,13 +1,13 @@
 package ru.ovod.foto2;
 
-import java.util.ArrayList;
-
 public class CreateListPhoto {
 
     private String image_title;  // имя фото для названия (пока нигже не использую)
     private String filename_thumdnail; // имя Preview
     private String filename; // имя полной фото
     private Integer image_id; // PHOTO_ID
+    private Integer isSync; // синхронизировано ли изображение
+
 
     public CreateListPhoto() {
     }
@@ -45,6 +45,13 @@ public class CreateListPhoto {
         this.filename_thumdnail = filename_thumdnail;
     }
 
+    public Integer getIsSync() {
+        return isSync;
+    }
+
+    public void setIsSync(Integer isSync) {
+        this.isSync = isSync;
+    }
 
 }
 

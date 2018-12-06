@@ -1,17 +1,12 @@
 package ru.ovod.foto2;
 
 import android.content.Intent;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.text.Html;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,24 +15,16 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.ListView;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
-
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-
 import static ru.ovod.foto2.MainActivity.verifyStoragePermissions;
-import ru.ovod.foto2.ModelClass.EventModel;
 
 public class StartActivity extends AppCompatActivity {
 
-    TableLayout tableInspections;
+    //TableLayout tableInspections;
     SQLiteDatabase database;  // база данных SQLite - с ней работаем в данном классе
     DBHelper dbhelper; // класс,  в котором задана структура нашей базы
     Integer selectedInspectionId = 0; // выбранная в таблице InspectionId
-    SettingsHelper settingshelper; // класс по работе с настройками
-
 
     ItemsAdapter adapter;
 
@@ -48,18 +35,13 @@ public class StartActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
-        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        //setSupportActionBar(toolbar);
 
         verifyStoragePermissions(this);
         dbhelper = new DBHelper(getApplicationContext());
         database = dbhelper.getWritableDatabase();
-        settingshelper = new SettingsHelper(getApplicationContext());
-
-
 
         adapter = new ItemsAdapter();
-        final ListView items = (ListView) findViewById(R.id.items);
+        final ListView items = findViewById(R.id.items);
         items.setAdapter(adapter);
         items.setClickable(true);
         items.setOnItemClickListener(
@@ -75,7 +57,7 @@ public class StartActivity extends AppCompatActivity {
         RefreshList(); // обновим список
 
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_neworder);
+        FloatingActionButton fab = findViewById(R.id.fab_neworder);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -83,16 +65,10 @@ public class StartActivity extends AppCompatActivity {
                 intent.putExtra("InsId", selectedInspectionId);
                 startActivity(intent);
 
-                // Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                //         .setAction("Action", null).show();
             }
         });
 
       /*  tableInspections = findViewById(R.id.tableInspections);
-
-
-
-
         GetInspectionListFromDB();*/
     }
 
@@ -129,22 +105,11 @@ public class StartActivity extends AppCompatActivity {
     }
 
 
-    // Фунция получает список Inspections из базу
+    /*// Фунция получает список Inspections из базу
     public  void GetInspectionListFromDB() {
 
         // очистикм tablelayout
         tableInspections.removeAllViewsInLayout();
-
-/*        String actsparam = "";
-
-        if (settingshelper.getShow_synchronized_acts())
-        {
-            actsparam = "";
-        }
-        else
-        {
-            actsparam = " WHERE  " + DBHelper.INSPECTION+"."+ dbhelper.INSPECTION_ID + " in ( select " + dbhelper.PHOTO_INSPECTION + " from " +  DBHelper.PHOTO + " where  " + dbhelper.PHOTO_ISSYNC + "=0) "  ;
-        }*/
 
         // получим из базы список Актов
 
@@ -229,6 +194,7 @@ public class StartActivity extends AppCompatActivity {
 
         tableInspections.addView(tableRow);
     }
+    */
 
     private void startAddCarInspectionActivity(int id){
         Intent intent = new Intent(this, MainActivity.class);
@@ -276,9 +242,7 @@ public class StartActivity extends AppCompatActivity {
             adapter.notifyDataSetChanged();
         }
 
-
         // получим из базы список Актов
-
         inspectionList = dbhelper.getInspectionList();
         for (Inspection item: inspectionList) {
             adapter.add(item);

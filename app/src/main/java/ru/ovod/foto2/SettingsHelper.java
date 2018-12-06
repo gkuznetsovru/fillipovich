@@ -13,9 +13,10 @@ public class SettingsHelper {
 
     // обращение к переменным только через Getter и Setter !
     private Boolean show_synchronized_acts = false; // показывать ли синхронизированные акты. Устанавливать через  setShow_synchronized_acts !!
+    private Integer counter_cols = 4; // количество колонок в фото-плитке
 
     private static final String APP_PREFERENCES = "ovodsettings";  // название блока с нашими настройка
-    private static final String APP_PREFERENCES_COUNTER = "counter_cols"; // настройка -  сколько колонок
+    private static final String APP_PREFERENCES_COUNTER_COLS = "countercols"; // настройка -  сколько колонок
     private static final String APP_PREFERENCES_SHOWSYNCACTS = "showsyncacts"; // настройка -   показывать ли синхронизированные акты
     private SharedPreferences mSettings;
 
@@ -52,6 +53,20 @@ public class SettingsHelper {
     }
 
 
+    public Integer getCounter_cols() {
+        counter_cols = 4; // по умолчанию пусть показываются
+        if (mSettings.contains(APP_PREFERENCES_COUNTER_COLS)) {
+            // Получаем число из настроек
+            counter_cols = (Integer) mSettings.getInt(APP_PREFERENCES_COUNTER_COLS, 4);
+        }
+        return counter_cols;
+    }
 
-
+    public void setCounter_cols(Integer counter_cols) {
+        this.counter_cols = counter_cols;
+        // Запоминаем данные
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putInt (APP_PREFERENCES_COUNTER_COLS, this.counter_cols );
+        editor.apply();
+    }
 }

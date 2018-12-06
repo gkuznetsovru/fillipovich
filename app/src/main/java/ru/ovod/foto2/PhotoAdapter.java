@@ -3,19 +3,16 @@ package ru.ovod.foto2;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Date;
 
 import static ru.ovod.foto2.MainActivity.calculateInSampleSize;
 
@@ -48,33 +45,26 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.ViewHolder> 
         int px = 85;
         File file = new File(path,galleryList.get(i).getFilename_thumdnail());
         Bitmap bitmap = decodeSampledBitmapFromResource(file.getAbsolutePath(), px, px);
-        //Log.d("log", String.format("Required size = %s, bitmap size = %sx%s, byteCount = %s",
-//                px, bitmap.getWidth(), bitmap.getHeight(), bitmap.getByteCount()));
+
+        if (galleryList.get(i).getIsSync()>0) {
+            bitmap = overlayBitmapToCenter(bitmap);
+        }
+
         viewHolder.img.setTag(i);
         viewHolder.img.setImageBitmap(bitmap);
 
         viewHolder.img.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                /* int px = 300;
-                File file = new File(path,galleryList.get( (int) v.getTag()).getFilename());
-                Bitmap bitmap = decodeSampledBitmapFromResource(file.getAbsolutePath(), px, px);
-                Log.d("log", String.format("Required size = %s, bitmap size = %sx%s, byteCount = %s",
-                        px, bitmap.getWidth(), bitmap.getHeight(), bitmap.getByteCount()));
-                bigimageview.setImageBitmap(bitmap);*/
 
                 File file = new File(path,galleryList.get( (int) v.getTag()).getFilename());
                 Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
-                //Log.d("log", String.format("bitmap size = %sx%s, byteCount = %s",
-//                        bitmap.getWidth(), bitmap.getHeight(),
-  //                      (int) (bitmap.getByteCount() / 1024)));
 
                 if (bitmap==null)  // если большого изображения нет, то подсунем Preview (такой моежет быть, если изображение ещё сохраняется)
                 {
                     file = new File(path,galleryList.get( (int) v.getTag()).getFilename_thumdnail());
                     bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
                 }
-
 
                 bigimageview.setImageBitmap(bitmap);
                 //bigimageview.setRotation(90);
@@ -83,14 +73,6 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.ViewHolder> 
 
 
     }
-
-    /*private static Bitmap rotateImage(Bitmap img, int degree) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(degree);
-        Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
-        img.recycle();
-        return rotatedImg;
-    }*/
 
     @Override
     public int getItemCount() {
@@ -109,6 +91,34 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.ViewHolder> 
         }
     }
 
+
+
+
+    // функция накладывает изображение (использую для залитых фото)
+    public Bitmap overlayBitmapToCenter(Bitmap bitmap1) {
+
+        Bitmap bitmap2 = BitmapFactory.decodeResource(context.getResources(), android.R.drawable.ic_menu_upload);
+
+        int bitmap1Width = bitmap1.getWidth();
+        int bitmap1Height = bitmap1.getHeight();
+        int bitmap2Width = bitmap2.getWidth();
+        int bitmap2Height = bitmap2.getHeight();
+
+
+        float marginLeft = (float) (bitmap1Width * 0.5 - bitmap2Width * 0.5);
+        float marginTop = (float) (bitmap1Height * 0.5 - bitmap2Height * 0.5);
+
+        //создаем пустой битмап с размерами как 1-й битмап
+        Bitmap overlayBitmap = Bitmap.createBitmap(bitmap1Width, bitmap1Height, bitmap1.getConfig());
+        //создаем canvas
+        Canvas canvas = new Canvas(overlayBitmap);
+        //наносим на canvas 1-й битмап
+        canvas.drawBitmap(bitmap1, new Matrix(), null);
+        //сверху наносим 2-й битмап (по центру)
+        canvas.drawBitmap(bitmap2, marginLeft, marginTop, null);
+        //возвращаем итоговый битмап
+        return overlayBitmap;
+    }
 
 
     // функция сжатия изображения из примера  https://startandroid.ru/ru/uroki/vse-uroki-spiskom/372-urok-160-risovanie-bitmap-chtenie-izobrazhenij-bolshogo-razmera.html
