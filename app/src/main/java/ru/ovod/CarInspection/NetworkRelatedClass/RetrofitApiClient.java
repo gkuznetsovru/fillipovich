@@ -1,4 +1,4 @@
-package ru.ovod.foto2.NetworkRelatedClass;
+package ru.ovod.CarInspection.NetworkRelatedClass;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

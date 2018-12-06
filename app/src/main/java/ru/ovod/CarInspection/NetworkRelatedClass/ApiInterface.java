@@ -1,6 +1,6 @@
-package ru.ovod.foto2.NetworkRelatedClass;
+package ru.ovod.CarInspection.NetworkRelatedClass;
 
-import ru.ovod.foto2.ModelClass.ResponseModel;
+import ru.ovod.CarInspection.ModelClass.ResponseModel;
 
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;

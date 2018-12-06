@@ -1,6 +1,4 @@
-package ru.ovod.foto2;
-
-import java.util.Date;
+package ru.ovod.CarInspection;
 
 public class Inspection {
     private Integer _inspectionid;

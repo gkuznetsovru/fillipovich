@@ -1,4 +1,4 @@
-package ru.ovod.foto2;
+package ru.ovod.CarInspection;
 
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
@@ -17,7 +17,7 @@ import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
 import java.util.ArrayList;
-import static ru.ovod.foto2.MainActivity.verifyStoragePermissions;
+import static ru.ovod.CarInspection.MainActivity.verifyStoragePermissions;
 
 public class StartActivity extends AppCompatActivity {
 

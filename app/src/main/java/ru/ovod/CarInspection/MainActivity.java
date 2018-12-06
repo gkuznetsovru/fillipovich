@@ -1,4 +1,4 @@
-package ru.ovod.foto2;
+package ru.ovod.CarInspection;
 
 import android.Manifest;
 import android.app.Activity;
@@ -54,13 +54,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Random;
 
 
 import pub.devrel.easypermissions.EasyPermissions;
 
-import ru.ovod.foto2.ModelClass.EventModel;
+import ru.ovod.CarInspection.ModelClass.EventModel;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -704,7 +703,7 @@ public class MainActivity extends AppCompatActivity {
                 operationlog.append(cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)) + "\n");
                 Log.e("DB ", "Начали отправку файла: " + cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)).toString() );
                 setCount_sending_images(count_sending_images+1);
-                ru.ovod.foto2.NetworkRelatedClass.NetworkCall.fileUpload(path+"/"+cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)).toString(), new ru.ovod.foto2.ModelClass.ImageSenderInfo(OrderID.toString(), OrderEdit.getText().toString() ));
+                ru.ovod.CarInspection.NetworkRelatedClass.NetworkCall.fileUpload(path+"/"+cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)).toString(), new ru.ovod.CarInspection.ModelClass.ImageSenderInfo(OrderID.toString(), OrderEdit.getText().toString() ));
             }
         }
         else

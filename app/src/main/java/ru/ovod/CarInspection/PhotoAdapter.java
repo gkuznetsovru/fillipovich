@@ -1,4 +1,4 @@
-package ru.ovod.foto2;
+package ru.ovod.CarInspection;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -14,7 +14,7 @@ import android.widget.ImageView;
 import java.io.File;
 import java.util.ArrayList;
 
-import static ru.ovod.foto2.MainActivity.calculateInSampleSize;
+import static ru.ovod.CarInspection.MainActivity.calculateInSampleSize;
 
 public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.ViewHolder> {
     private ArrayList<CreateListPhoto> galleryList;

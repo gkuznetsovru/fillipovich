@@ -1,4 +1,4 @@
-package ru.ovod.foto2;
+package ru.ovod.CarInspection;
 
 import android.app.Activity;
 
@@ -14,8 +14,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.File;
-
-import static ru.ovod.foto2.DBHelper.INSPECTION;
 
 public class Settings extends Activity {
 

@@ -1,4 +1,4 @@
-package ru.ovod.foto2;
+package ru.ovod.CarInspection;
 
 import android.content.Context;
 import android.content.SharedPreferences;

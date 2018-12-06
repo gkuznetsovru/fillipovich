@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="ru.ovod.foto2">
+    package="ru.ovod.CarInspection">
 
     <uses-feature
         android:name="android.hardware.camera2"
@@ -22,24 +22,24 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name="ru.ovod.CarInspection.MainActivity">
 
         </activity>
         <activity
-            android:name=".Settings"
+            android:name="ru.ovod.CarInspection.Settings"
             android:label="Настройки"
             android:theme="@style/AppTheme" />
         <activity
-            android:name=".SelectOrderActivity"
+            android:name="ru.ovod.CarInspection.SelectOrderActivity"
             android:label="@string/title_activity_select_order"
-            android:parentActivityName=".MainActivity"
+            android:parentActivityName="ru.ovod.CarInspection.MainActivity"
             android:theme="@style/AppTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="ru.ovod.foto2.MainActivity" />
+                android:value="ru.ovod.CarInspection.MainActivity" />
         </activity>
         <activity
-            android:name=".StartActivity"
+            android:name="ru.ovod.CarInspection.StartActivity"
             android:label="@string/title_activity_start"
             android:theme="@style/AppTheme">
             <intent-filter>

@@ -1,12 +1,12 @@
-package ru.ovod.foto2.NetworkRelatedClass;
+package ru.ovod.CarInspection.NetworkRelatedClass;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import ru.ovod.foto2.ModelClass.EventModel;
-import ru.ovod.foto2.ModelClass.ImageSenderInfo;
-import ru.ovod.foto2.ModelClass.ResponseModel;
+import ru.ovod.CarInspection.ModelClass.EventModel;
+import ru.ovod.CarInspection.ModelClass.ImageSenderInfo;
+import ru.ovod.CarInspection.ModelClass.ResponseModel;
 import com.orhanobut.logger.AndroidLogAdapter;
 import com.orhanobut.logger.Logger;
 
