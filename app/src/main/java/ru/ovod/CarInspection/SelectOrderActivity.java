@@ -28,16 +28,19 @@ public class SelectOrderActivity extends AppCompatActivity
         return true;
     }
 
+
+    // функция реакции на нажатия на кнопку поиска (обязательно должна быть определа)
     @Override
     public boolean onQueryTextSubmit(String query) {
         // User pressed the search button
         return false;
     }
 
+    // функции реакции на ввод текста в строке поиска
     @Override
     public boolean onQueryTextChange(String newText) {
-        // User changed the text
 
+        // после изменения текста циклом поищем вхождения
         for (int i = 0; i < tableorders.getChildCount(); i++) {
             TableRow row = (TableRow) tableorders.getChildAt(i);
             TextView tv =  (TextView) row.getChildAt(0);
@@ -45,7 +48,7 @@ public class SelectOrderActivity extends AppCompatActivity
                 if (tv.getText().toString().toUpperCase().contains(newText.toUpperCase())) {
                     row.setVisibility(View.VISIBLE);
                 } else {
-                    row.setVisibility(View.GONE);
+                    row.setVisibility(View.GONE);  // тут именно надо GONE выбрать, чтоб строка схлопнулась
                 }
             }
             else {

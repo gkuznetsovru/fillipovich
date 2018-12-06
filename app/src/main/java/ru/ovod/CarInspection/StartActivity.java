@@ -1,5 +1,6 @@
 package ru.ovod.CarInspection;
 
+import android.app.LauncherActivity;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,11 +19,12 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.ListView;
+import android.widget.TableRow;
 import android.widget.TextView;
 import java.util.ArrayList;
 import static ru.ovod.CarInspection.MainActivity.verifyStoragePermissions;
 
-public class StartActivity extends AppCompatActivity {
+public class StartActivity extends AppCompatActivity  implements SearchView.OnQueryTextListener  {
 
     //TableLayout tableInspections;
     SQLiteDatabase database;  // база данных SQLite - с ней работаем в данном классе
@@ -43,7 +46,7 @@ public class StartActivity extends AppCompatActivity {
         database = dbhelper.getWritableDatabase();
 
         adapter = new ItemsAdapter();
-        final ListView items = findViewById(R.id.items);
+        ListView items = findViewById(R.id.items);
         items.setAdapter(adapter);
         items.setClickable(true);
         items.setOnItemClickListener(
@@ -56,9 +59,8 @@ public class StartActivity extends AppCompatActivity {
                 }
         );
 
+        //items.setTextFilterEnabled(true); // активируем фильтр
 
-        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
-        searchView.setOnQueryTextListener(this);
 
         RefreshList(); // обновим список
 
@@ -78,6 +80,41 @@ public class StartActivity extends AppCompatActivity {
         GetInspectionListFromDB();*/
     }
 
+    // функции реакции на ввод текста в строке поиска
+    @Override
+    public boolean onQueryTextChange(String s) {
+
+        if (inspectionList.size()>0)  // если список не пуст, то производим поиск
+        {
+            // очистим ListView
+            adapter.clear();
+            adapter.notifyDataSetChanged();
+
+            if (TextUtils.isEmpty(s))  // если строка пустая, то быстро обратно весь список закинем
+            {
+                for (Inspection item : inspectionList) {
+                    adapter.add(item);
+                }
+            } else  // иначе фильтруем список
+            {
+                for (Inspection item : inspectionList) {
+                    if (item.getNumber().toString().toUpperCase().contains(s.toUpperCase())
+                        |  item.getModel().toUpperCase().contains(s.toUpperCase())
+                        | item.getVin().toUpperCase().contains(s.toUpperCase())  )
+                    {
+                        adapter.add(item);
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    // функция реакции на нажатия на кнопку поиска (обязательно должна быть определа)
+    @Override
+    public boolean onQueryTextSubmit(String s) {
+        return false;
+    }
 
     // обновим список при возврате из дочерних Activity
     @Override
@@ -89,7 +126,14 @@ public class StartActivity extends AppCompatActivity {
     // подцепим меню
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.mainmenu, menu);
+        getMenuInflater().inflate(R.menu.mainmenu, menu);  // добавим главное меню
+
+        // далее идёт блок для определания кнопки контектсного оиска
+        getMenuInflater().inflate(R.menu.menu_search, menu); // добавил меню с кнопкой поиска
+        MenuItem searchItem = menu.findItem(R.id.search);  // определим кнопку поиска
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem); // привяжем к кнопке формирование сроки поиска
+        searchView.setOnQueryTextListener(this); // и зададим реакцию на поиск
+
         return true;
     }
 
@@ -202,6 +246,8 @@ public class StartActivity extends AppCompatActivity {
     }
     */
 
+
+    // функция вызова MainActivity
     private void startAddCarInspectionActivity(int id){
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("InsId", id);
