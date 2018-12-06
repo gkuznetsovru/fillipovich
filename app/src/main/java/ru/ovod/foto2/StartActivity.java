@@ -36,6 +36,8 @@ public class StartActivity extends AppCompatActivity {
     SQLiteDatabase database;  // база данных SQLite - с ней работаем в данном классе
     DBHelper dbhelper; // класс,  в котором задана структура нашей базы
     Integer selectedInspectionId = 0; // выбранная в таблице InspectionId
+    SettingsHelper settingshelper; // класс по работе с настройками
+
 
     ItemsAdapter adapter;
 
@@ -52,6 +54,8 @@ public class StartActivity extends AppCompatActivity {
         verifyStoragePermissions(this);
         dbhelper = new DBHelper(getApplicationContext());
         database = dbhelper.getWritableDatabase();
+        settingshelper = new SettingsHelper(getApplicationContext());
+
 
 
         adapter = new ItemsAdapter();
@@ -131,13 +135,26 @@ public class StartActivity extends AppCompatActivity {
         // очистикм tablelayout
         tableInspections.removeAllViewsInLayout();
 
+/*        String actsparam = "";
+
+        if (settingshelper.getShow_synchronized_acts())
+        {
+            actsparam = "";
+        }
+        else
+        {
+            actsparam = " WHERE  " + DBHelper.INSPECTION+"."+ dbhelper.INSPECTION_ID + " in ( select " + dbhelper.PHOTO_INSPECTION + " from " +  DBHelper.PHOTO + " where  " + dbhelper.PHOTO_ISSYNC + "=0) "  ;
+        }*/
+
         // получим из базы список Актов
 
         String SQL = "SELECT " + DBHelper.INSPECTION_ID + ", " + DBHelper.INSPECTION_NUMBER + ", "+ DBHelper.INSPECTION_ORDERID + ", "
                 + " (SELECT count(*) from  "+ DBHelper.PHOTO + " where "+DBHelper.PHOTO_ISSYNC+"=0 and "
                 + DBHelper.PHOTO+"."+DBHelper.PHOTO_INSPECTION+" = " + DBHelper.INSPECTION+"."+DBHelper.INSPECTION_ID + ") as coun"
                 // + " 10 as coun"
-                + " FROM " + DBHelper.INSPECTION + " Order by "+ DBHelper.INSPECTION_ID;
+                + " FROM " + DBHelper.INSPECTION
+//                + actsparam
+                + " Order by "+ DBHelper.INSPECTION_ID;
         Cursor cursor = database.rawQuery(SQL, null);
         if (!cursor.isAfterLast()) {
             while (cursor.moveToNext()) {

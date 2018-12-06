@@ -26,12 +26,7 @@ public class Settings extends Activity {
     private CheckBox checkBox;
     private EditText editcolumns;
 
-
-
-    public static final String APP_PREFERENCES = "ovodsettings";
-    public static final String APP_PREFERENCES_COUNTER = "counter_cols";
-    public static final String APP_PREFERENCES_SHOWSYNCACTS = "showsyncacts"; // показывать ли синхронизированные акты
-    private SharedPreferences mSettings;
+    private SettingsHelper settingsHelper;
 
 
     @Override
@@ -42,6 +37,7 @@ public class Settings extends Activity {
         // инициализируем БД
         dbhelper = new DBHelper(getApplicationContext());
         database = dbhelper.getWritableDatabase();
+        settingsHelper = new SettingsHelper(getApplicationContext());
 
         checkBox = findViewById(R.id.checkBox);
         editcolumns = findViewById(R.id.editcolumns);
@@ -49,8 +45,6 @@ public class Settings extends Activity {
         versionText=findViewById(R.id.VersionText);
         versionText.setText(" ФотоОвод. Версия "+BuildConfig.VERSION_NAME);
 
-
-        mSettings = getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
     }
 
     @Override
@@ -61,27 +55,18 @@ public class Settings extends Activity {
     }
 
 
+    // метож записывает установленные настройки
     @Override
     protected void onPause() {
         super.onPause();
-
-        // Запоминаем данные
-        SharedPreferences.Editor editor = mSettings.edit();
-        editor.putBoolean(APP_PREFERENCES_SHOWSYNCACTS, checkBox.isChecked());
-     //   editor.putInt(APP_PREFERENCES_COUNTER, Integer.parseInt(editcolumns.getText().toString()));
-        editor.apply();
+        settingsHelper.setShow_synchronized_acts(checkBox.isChecked());
     }
 
+    // метод читает установленные настройки
     @Override
     protected void onResume() {
         super.onResume();
-        if (mSettings.contains(APP_PREFERENCES_SHOWSYNCACTS)) {
-            // Получаем число из настроек
-            checkBox.setChecked(mSettings.getBoolean(APP_PREFERENCES_SHOWSYNCACTS, false));
-        }
-       /* if (mSettings.contains(APP_PREFERENCES_COUNTER)) {
-            // Получаем число из настроек
-            editcolumns.setText( mSettings.getInt(APP_PREFERENCES_COUNTER, 4));        }*/
+        checkBox.setChecked(settingsHelper.getShow_synchronized_acts());
     }
 
     @Override

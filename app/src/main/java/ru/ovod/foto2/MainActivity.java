@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
     DBHelper dbhelper; // класс,  в котором задана структура нашей локальной базы
     SQLiteDatabase database;  // база данных SQLite - с ней работаем в данном классе
     DataSet dataset = new DataSet(); // общий класс для доступа к базе овода
+    SettingsHelper settingshelper; // класс по работе с настройками
 
 
     private ImageView MyImage;
@@ -139,6 +140,8 @@ public class MainActivity extends AppCompatActivity {
         model = findViewById(R.id.model);
         vin = findViewById(R.id.vin);
         dateorder = findViewById(R.id.dateorder);
+
+        settingshelper = new SettingsHelper(getApplicationContext());
 
         // Allow application use internet
         if (android.os.Build.VERSION.SDK_INT > 9) {

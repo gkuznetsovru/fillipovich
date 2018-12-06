@@ -22,6 +22,10 @@ import java.util.Map;
 
 public class DBHelper extends SQLiteOpenHelper {
 
+
+    private SettingsHelper settingshelper; // класс по работе с настройками
+    private Context context;
+
     private static final int DB_VERSION = 7; // версия
     private static final String DB_Name = "OvodOrders";  // имя локаьной базы данных
     private static final String TAGDB = "DATABASE_OPERATION";
@@ -50,11 +54,14 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public DBHelper(Context context) {
         super(context, DB_Name, null, DB_VERSION);
+        this.context = context;
+        settingshelper = new SettingsHelper(context);
         Log.e(TAGDB,"DBHelper Created");
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+
 
         Log.e(TAGDB,"Begin table create.");
 
@@ -101,12 +108,25 @@ public class DBHelper extends SQLiteOpenHelper {
         Inspection item;
         ArrayList<Inspection> inspectionList = new ArrayList<Inspection>();
 
+
+
+        String actsparam = "";
+        if (settingshelper.getShow_synchronized_acts())
+        {
+            actsparam = "";
+        }
+        else
+        {
+            actsparam = " WHERE  " + INSPECTION+"."+ INSPECTION_ID + " in ( select " + PHOTO_INSPECTION + " from " +  PHOTO + " where  " + PHOTO_ISSYNC + "=0) "  ;
+        }
+
         SQLiteDatabase database = this.getReadableDatabase();
         String SQL = "SELECT " + INSPECTION_ID + ", " + INSPECTION_NUMBER + ", " + INSPECTION_ORDERID + ", "
                 + INSPECTION_DATE + ", " + INSPECTION_MODEL + ", " + INSPECTION_VIN + ", " + INSPECTION_ISSYNC + ", "
                 + " (SELECT count(*) from  " + PHOTO + " where " + PHOTO + "." + PHOTO_INSPECTION + " = " + INSPECTION + "." + INSPECTION_ID + ") as coun, "
                 + " (SELECT count(*) from  " + PHOTO + " where " + PHOTO + "." + PHOTO_INSPECTION + " = " + INSPECTION + "." + INSPECTION_ID + " and "+PHOTO + "." + PHOTO_ISSYNC + " = 0 " +") as coun_no_sync" // количество не сихронизированных фото
                 + " FROM " + INSPECTION
+                + actsparam
                 + " Order by " + INSPECTION_ID + " desc";
         Cursor cursor = database. rawQuery(SQL, null);
         if (!cursor.isAfterLast()) {
