@@ -641,6 +641,10 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void saveFullImage(String fn) {
+
+        //StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        //StrictMode.setVmPolicy(builder.build());
+
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         file = new File(path,
                 fn);
