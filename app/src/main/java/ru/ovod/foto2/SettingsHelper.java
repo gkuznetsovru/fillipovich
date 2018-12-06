@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 
+// Класс для управления настройками приложения
+
 public class SettingsHelper {
 
     private Context context;
@@ -37,7 +39,7 @@ public class SettingsHelper {
             show_synchronized_acts = mSettings.getBoolean(APP_PREFERENCES_SHOWSYNCACTS, true);
         }
         return show_synchronized_acts;
-        
+
     }
 
     public void setShow_synchronized_acts(Boolean show_synchronized_acts) {

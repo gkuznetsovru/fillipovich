@@ -77,7 +77,8 @@ public class MainActivity extends AppCompatActivity {
     DataSet dataset = new DataSet(); // общий класс для доступа к базе овода
     SettingsHelper settingshelper; // класс по работе с настройками
 
-
+    private Integer count_sending_images = 0 ; // счётчик отправляемых в текущий момент фто на сервер. Нужно для управление внешним видом кнопки Upload.
+                                               // устанавливать только через setCount_sending_images !!
     private ImageView MyImage;
     private Uri photoURI;
     private Uri outputFileUri;
@@ -432,6 +433,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("Фото сихронизированно в базе:", event.getMessage() );
 
                 }
+                setCount_sending_images(count_sending_images-1); // уменьшим счётчик загружаемых изображений
             }
         }
     }
@@ -708,6 +710,8 @@ public class MainActivity extends AppCompatActivity {
         return Boolean.TRUE;
     }
 
+
+    // функция синхронизации
     public void Sync(View view) {
 
         if (!isOnline())
@@ -738,6 +742,7 @@ public class MainActivity extends AppCompatActivity {
             while (cursor.moveToNext()) {
                 // отправка файла
                 Log.e("DB ", "Начали отправку файла: " + cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)).toString() );
+                setCount_sending_images(count_sending_images+1);
                 ru.ovod.foto2.NetworkRelatedClass.NetworkCall.fileUpload(path+"/"+cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)).toString(), new ru.ovod.foto2.ModelClass.ImageSenderInfo(OrderID.toString(), OrderEdit.getText().toString() ));
             }
         }
@@ -965,7 +970,6 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-
         // зачистим переменны перед поиском
         setOrderID(0);
         model.setText("");
@@ -977,13 +981,8 @@ public class MainActivity extends AppCompatActivity {
         if (OrderID==0) // если ЗН не обнаружен
         {
             // то запросим у менеджера выбор ЗН
-            //Intent intent = new Intent(MainActivity.this,  SelectOrderActivity.class );
-            //startActivity(intent);
-
-            //Tmp_Number=OrderID.toString();
             Intent questionIntent = new Intent(MainActivity.this, SelectOrderActivity.class);
             startActivityForResult(questionIntent, REQUEST_ORDERID);
-            //showToast("Не найден заказ-наряд с таким номером на сервере");
         }
         else
         {
@@ -995,9 +994,28 @@ public class MainActivity extends AppCompatActivity {
 
     public void setOrderID(Integer orderID) {
         OrderID = orderID;
-        uploadbutton.setEnabled(OrderID>0); // отключим кнопку, если OrderID не опередлён
+
+        // отключение кнопки пока убрал.. Не знаю, надо ли блокировать. Т.к. при нажатии есть проверка и сообщение.
+        // uploadbutton.setEnabled(OrderID>0); // отключим кнопку, если OrderID не опередлён
 
     }
+
+
+
+    public void setCount_sending_images(Integer count_sending_images) {
+        this.count_sending_images = count_sending_images;
+        if (count_sending_images>0)
+        {
+            uploadbutton.setText("Идёт загрузка фотографий.");
+            uploadbutton.setEnabled(false); // отключим кнопку, если идёт  отравка фото
+        }
+        else
+        {
+            uploadbutton.setText(getString(R.string.uploadtestbutton));
+            uploadbutton.setEnabled(true); // отключим кнопку, если идёт  отравка фото
+        }
+    }
+
 
 
 }
