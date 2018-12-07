@@ -45,6 +45,8 @@ import android.widget.Toast;
 
 import android.util.Log;
 
+import com.squareup.picasso.Picasso;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -75,13 +77,14 @@ public class MainActivity extends AppCompatActivity {
     SQLiteDatabase database;  // база данных SQLite - с ней работаем в данном классе
     DataSet dataset = new DataSet(); // общий класс для доступа к базе овода
     SettingsHelper settingshelper; // класс по работе с настройками
+    PhotoHelper photohelper; // класс по с функциями по ороаботке изображений
 
     private Integer count_sending_images = 0 ; // счётчик отправляемых в текущий момент фто на сервер. Нужно для управление внешним видом кнопки Upload.
                                                // устанавливать только через setCount_sending_images !!
     private ImageView MyImage;
     private Uri photoURI;
     private Uri outputFileUri;
-    private TextView operationlog;
+    //private TextView operationlog;
     private File file;
     private File thumbnaul_file;
     private String path;
@@ -126,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         MyImage= findViewById(R.id.mImageView);
         OrderEdit= findViewById(R.id.editText);
-        operationlog= findViewById(R.id.filepath);
+        //operationlog= findViewById(R.id.filepath);
         path = Environment.getExternalStorageDirectory().toString();
         //tablelayout = findViewById(R.id.tablelayout);
         photoLayout = findViewById(R.id.phototablelayout);
@@ -141,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
         dateorder = findViewById(R.id.dateorder);
 
         settingshelper = new SettingsHelper(getApplicationContext());
+        photohelper = new PhotoHelper(getApplicationContext());
 
         // Allow application use internet
         if (android.os.Build.VERSION.SDK_INT > 9) {
@@ -181,7 +185,6 @@ public class MainActivity extends AppCompatActivity {
            else
                {NewOrder();} // иначе готовим форму для нового акта
 
-
         GetPhotoList();
     }
 
@@ -192,6 +195,8 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+
+    // обработчик меню
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // получим идентификатор выбранного пункта меню
@@ -208,6 +213,7 @@ public class MainActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+
 
 
     @Override
@@ -228,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
-    // Функция клика по новой фото
+    // Функция клика кнопке получения новой фоты
     public void NewPhotoClick(View view) {
 
         if  (OrderEdit.getText().length() == 0) {  // Проверим, что ЗН выбран
@@ -387,11 +393,11 @@ public class MainActivity extends AppCompatActivity {
             String responseMessage = "Response from Server:\n" + event.getMessage();
             if (event.getMessage().contains("error"))
                {
-                   operationlog.append(responseMessage+"\n");
+                  // operationlog.append(responseMessage+"\n");
                }
                else {
-                operationlog.append("Файл загружен на сервер:\n");
-                operationlog.append(event.getMessage() + "\n");
+                //operationlog.append("Файл загружен на сервер:\n");
+                //operationlog.append(event.getMessage() + "\n");
                 File file = new File(path+"/"+event.getMessage());
                 Boolean b = true; // затычка вместо удаления файла
                 // Boolean b = file.delete();  // удаление файлов отключено
@@ -477,60 +483,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    // функция сжатия изображения из примера  https://startandroid.ru/ru/uroki/vse-uroki-spiskom/372-urok-160-risovanie-bitmap-chtenie-izobrazhenij-bolshogo-razmera.html
-    public static Bitmap decodeSampledBitmapFromResource(String path,
-                                                         int reqWidth, int reqHeight) {
-
-        // Читаем с inJustDecodeBounds=true для определения размеров
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(path, options);
-
-        // Вычисляем inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth,
-                reqHeight);
-
-        // Читаем с использованием inSampleSize коэффициента
-        options.inJustDecodeBounds = false;
-        return BitmapFactory.decodeFile(path, options);
-    }
-
-
-
-    // функция возвращает угол для поворота изображения
-    private static Integer angleToReturn(Context context, Uri selectedImage) throws IOException {
-
-        InputStream input = context.getContentResolver().openInputStream(selectedImage);
-        ExifInterface ei;
-        if (Build.VERSION.SDK_INT > 23)
-            ei = new ExifInterface(input);
-        else
-            ei = new ExifInterface(selectedImage.getPath());
-
-        int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-
-        switch (orientation) {
-            case ExifInterface.ORIENTATION_ROTATE_90:
-                return 90;
-            case ExifInterface.ORIENTATION_ROTATE_180:
-                return 180;
-            case ExifInterface.ORIENTATION_ROTATE_270:
-                return 270;
-            default:
-                return 0;
-        }
-    }
-
-
-    public static Bitmap RotateBitmap(Bitmap source, float angle)
-    {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(angle);
-        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
-    }
-
-
-
     // определим функцию получени резултатов (обращение к другим формам или активностя)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -567,29 +519,32 @@ public class MainActivity extends AppCompatActivity {
 
                 // сформируем сразу Preview
                 int px = 85;
-                Bitmap myBitmap = decodeSampledBitmapFromResource( file.getAbsolutePath(), px, px);
+                Bitmap myBitmap = photohelper.decodeSampledBitmapFromResource( file.getAbsolutePath(), px, px);
 
                 Integer angle = 0; // по умолчанию не поворачиваем
                 try {
-                    angle = angleToReturn( getApplicationContext(),Uri.fromFile(file));
+                    angle = photohelper.angleToReturn( getApplicationContext(),Uri.fromFile(file));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
                 if (angle>0) {
-                    myBitmap = RotateBitmap(myBitmap, angle);  // перевернём Preview
+                    myBitmap = photohelper.RotateBitmap(myBitmap, angle);  // перевернём Preview
+
 
                     // заодно перевернём большое изображение в асинхронном потоке
-                    PhotoAsyncTask photoAsync = new PhotoAsyncTask(angle,file);
-                    photoAsync.execute();
+                    // переворот отключил
+//                    PhotoAsyncTask photoAsync = new PhotoAsyncTask(angle,file);
+//                    photoAsync.execute();
                 }
                 saveBitmap(myBitmap, thumbnaul_file.getPath());
 
-                MyImage.setImageURI(Uri.fromFile(thumbnaul_file));
+                //MyImage.setImageURI(Uri.fromFile(thumbnaul_file));
+                photohelper.LoadImageFromFile(file,MyImage);
             }
 
-            operationlog.append("Файл сформирован:\n");
-            operationlog.append(file.getName() + "\n");
+            //operationlog.append("Файл сформирован:\n");
+            //operationlog.append(file.getName() + "\n");
 
             GetPhotoList(); // обновим список фото
         }
@@ -622,21 +577,6 @@ public class MainActivity extends AppCompatActivity {
         int Inspect = database.update(DBHelper.INSPECTION, contentValues, DBHelper.INSPECTION_ID + "=?", new String[]{InspectionID.toString()});
         Log.e("Изменили в лок. базе:", InspectionID.toString());
     }
-
-
-    /*private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,
-                ".jpg",
-                storageDir
-        );
-
-        return image;
-    } */
 
 
     private void saveFullImage(String fn) {
@@ -699,8 +639,8 @@ public class MainActivity extends AppCompatActivity {
         if (!cursor.isAfterLast()) {
             while (cursor.moveToNext()) {
                 // отправка файла
-                operationlog.append("Начало отправки файла:\n");
-                operationlog.append(cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)) + "\n");
+                //operationlog.append("Начало отправки файла:\n");
+                //operationlog.append(cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)) + "\n");
                 Log.e("DB ", "Начали отправку файла: " + cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)).toString() );
                 setCount_sending_images(count_sending_images+1);
                 ru.ovod.CarInspection.NetworkRelatedClass.NetworkCall.fileUpload(path+"/"+cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)).toString(), new ru.ovod.CarInspection.ModelClass.ImageSenderInfo(OrderID.toString(), OrderEdit.getText().toString() ));
@@ -781,7 +721,7 @@ public class MainActivity extends AppCompatActivity {
 
         int px = 85;
         File file = new File(path,photo);
-        Bitmap bitmap = decodeSampledBitmapFromResource(file.getAbsolutePath(), px, px);
+        Bitmap bitmap = photohelper.decodeSampledBitmapFromResource(file.getAbsolutePath(), px, px);
         Log.d("log", String.format("Required size = %s, bitmap size = %sx%s, byteCount = %s",
                 px, bitmap.getWidth(), bitmap.getHeight(), bitmap.getByteCount()));
         im.setImageBitmap(bitmap);
@@ -933,7 +873,7 @@ public class MainActivity extends AppCompatActivity {
     public void setOrderID(Integer orderID) {
         OrderID = orderID;
 
-        // отключение кнопки пока убрал.. Не знаю, надо ли блокировать. Т.к. при нажатии есть проверка и сообщение.
+        // отключение кнопки пока убрал.. Не знаю, надо ли блокировать. Т.к. при нажатии есть проверка и сообщение - так понятнее, мне кажется.
         // uploadbutton.setEnabled(OrderID>0); // отключим кнопку, если OrderID не опередлён
 
     }
