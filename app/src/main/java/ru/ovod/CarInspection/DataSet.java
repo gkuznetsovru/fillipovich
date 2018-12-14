@@ -43,8 +43,10 @@ connectdb.php - это  библиотерка, инициализирующая
 
 public class DataSet {
 
-    // объявим адрес доступа к PHP json, который обрабатывае запросы
-    String url_for_web = "https://smit.ovod.ru/upload/json.php";
+    // объявим адрес доступа к PHP json, которая обрабатывает запросы
+    //String url_for_web = "https://smit.ovod.ru/upload/json.php";   // тестовый
+    String url_for_web = "http://gateway.ovod.ru:9999/upload/json.php";  // боевой для внутреннего сервися
+
 
     // результат выборки с сервера в формате JSONArray
     // нумерация начинается с нуля !
