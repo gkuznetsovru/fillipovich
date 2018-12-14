@@ -14,6 +14,18 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <EditText
+                android:id="@+id/editdays"
+                android:layout_width="100dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="12dp"
+                android:ems="10"
+                android:inputType="numberSigned"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:layout_constraintBaseline_toBaselineOf="@+id/textView6"
+                app:layout_constraintStart_toEndOf="@+id/textView6" />
+
             <TextView
                 android:id="@+id/VersionText"
                 android:layout_width="wrap_content"
@@ -36,39 +48,27 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/VersionText" />
 
-            <TextView
-                android:id="@+id/textView"
-                android:layout_width="wrap_content"
-                android:layout_height="29dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="72dp"
-                android:text="@string/ClearAll"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/editcolumns" />
-
             <Button
                 android:id="@+id/button5"
-                android:layout_width="wrap_content"
+                android:layout_width="254dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
                 android:onClick="ClickClearFileAndDB"
                 android:text="@string/Text_ClearsAll"
-                app:layout_constraintEnd_toEndOf="@+id/textView"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textView" />
+                app:layout_constraintEnd_toEndOf="@+id/textView7"
+                app:layout_constraintHorizontal_bias="0.38"
+                app:layout_constraintStart_toStartOf="@+id/textView6"
+                app:layout_constraintTop_toBottomOf="@+id/editdays" />
 
             <EditText
                 android:id="@+id/editcolumns"
                 android:layout_width="187dp"
                 android:layout_height="37dp"
-                android:layout_marginStart="16dp"
                 android:ems="10"
                 android:inputType="numberSigned"
                 android:textSize="16sp"
-                app:layout_constraintEnd_toEndOf="@+id/textView4"
-                app:layout_constraintHorizontal_bias="1.0"
                 app:layout_constraintStart_toStartOf="@+id/textView4"
                 app:layout_constraintTop_toBottomOf="@+id/textView4" />
 
@@ -107,6 +107,27 @@
                 app:srcCompat="@drawable/ovod"
                 tools:srcCompat="@drawable/ovod"
                 android:contentDescription="@string/CenterOvod" />
+
+            <TextView
+                android:id="@+id/textView6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="52dp"
+                android:text="Старше "
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="@+id/editcolumns"
+                app:layout_constraintTop_toBottomOf="@+id/editcolumns" />
+
+            <TextView
+                android:id="@+id/textView7"
+                android:layout_width="74dp"
+                android:layout_height="23dp"
+                android:layout_marginStart="8dp"
+                android:text="дней(я)"
+                android:textStyle="bold"
+                app:layout_constraintBaseline_toBaselineOf="@+id/editdays"
+                app:layout_constraintStart_toEndOf="@+id/editdays" />
 
         </android.support.constraint.ConstraintLayout>
     </android.support.v4.widget.NestedScrollView>

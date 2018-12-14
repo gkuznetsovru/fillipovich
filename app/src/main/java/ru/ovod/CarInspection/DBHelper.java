@@ -15,7 +15,7 @@ public class DBHelper extends SQLiteOpenHelper {
     private SettingsHelper settingshelper; // класс по работе с настройками
     private Context context;
 
-    private static final int DB_VERSION = 7; // версия
+    private static final int DB_VERSION = 10; // версия
     private static final String DB_Name = "OvodOrders";  // имя локаьной базы данных
     private static final String TAGDB = "DATABASE_OPERATION";
 
@@ -27,6 +27,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String INSPECTION_VIN = "vin";  // VIN (получаем эти данные с сервера)
     public static final String INSPECTION_ORDERID = "orderid";  // ORderID
     public static final String INSPECTION_ISSYNC = "issync";  // пометка, что синхронизировано
+    public static final String INSPECTION_CREATEDATE = "createdate";  // пометка, что синхронизировано
 
     public static final String PHOTO = "photo";  // таблица актов осмотра
     public static final String PHOTO_ID = "_photoid";  // id
@@ -62,7 +63,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
             String sql = "create table IF NOT EXISTS " + INSPECTION + "(" + INSPECTION_ID
                     + " integer primary key AUTOINCREMENT," + INSPECTION_NUMBER + " text," + INSPECTION_DATE + " string," + INSPECTION_MODEL + " text," + INSPECTION_VIN + " text,"
-                    + INSPECTION_ORDERID + " integer," + INSPECTION_ISSYNC + " integer" + ")";
+                    + INSPECTION_ORDERID + " integer," + INSPECTION_ISSYNC + " integer," + INSPECTION_CREATEDATE +" DATETIME DEFAULT CURRENT_TIMESTAMP " + ")";
 
             Log.e(TAGDB, sql);
             db.execSQL(sql);

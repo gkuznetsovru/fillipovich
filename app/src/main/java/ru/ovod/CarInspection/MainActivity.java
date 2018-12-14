@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
     static final int REQUEST_IMAGE_CAPTURE = 3374;  // зададим случайный код для активности получения фото
-    static final int REQUEST_ORDERID = 3477;  // зададим случайный код для OderId
+    static final int REQUEST_ORDERID = 3477;  // зададим случайный код для OrderId
 
     private TableLayout photoLayout;
 

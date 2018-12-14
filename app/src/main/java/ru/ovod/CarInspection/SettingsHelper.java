@@ -14,11 +14,13 @@ public class SettingsHelper {
     // обращение к переменным только через Getter и Setter !
     private Boolean show_synchronized_acts = false; // показывать ли синхронизированные акты. Устанавливать через  setShow_synchronized_acts !!
     private Integer counter_cols = 4; // количество колонок в фото-плитке
+    private Integer days_to_delete = 20; // количество дней, за которые надо удалить фото и акты осмотра
 
     private static final String APP_PREFERENCES = "ovodsettings";  // название блока с нашими настройка
     private static final String APP_PREFERENCES_COUNTER_COLS = "countercols"; // настройка -  сколько колонок
     private static final String APP_PREFERENCES_SHOWSYNCACTS = "showsyncacts"; // настройка -   показывать ли синхронизированные акты
-    private SharedPreferences mSettings;
+    private static final String APP_PREFERENCES_DAYSTODELETE = "daystodelete"; // настройка -   показывать ли синхронизированные акты
+     private SharedPreferences mSettings;
 
 
     // конструктор - context надо передать при созданиии
@@ -69,4 +71,22 @@ public class SettingsHelper {
         editor.putInt (APP_PREFERENCES_COUNTER_COLS, this.counter_cols );
         editor.apply();
     }
+
+
+    public Integer getDays_to_delete() {
+        if (mSettings.contains(APP_PREFERENCES_DAYSTODELETE)) {
+            // Получаем число из настроек
+            days_to_delete = (Integer) mSettings.getInt(APP_PREFERENCES_DAYSTODELETE, days_to_delete);
+        }
+        return days_to_delete;
+    }
+
+    public void setDays_to_delete(Integer days_to_delete) {
+        this.days_to_delete = days_to_delete;
+        // Запоминаем данные
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putInt (APP_PREFERENCES_DAYSTODELETE, this.days_to_delete );
+        editor.apply();
+    }
+
 }
