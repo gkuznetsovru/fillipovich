@@ -84,7 +84,6 @@ public class MainActivity extends AppCompatActivity {
     private ImageView MyImage;
     private Uri photoURI;
     private Uri outputFileUri;
-    //private TextView operationlog;
     private File file;
     private File thumbnaul_file;
     private String path;
@@ -104,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
     static final int REQUEST_IMAGE_CAPTURE = 3374;  // зададим случайный код для активности получения фото
     static final int REQUEST_ORDERID = 3477;  // зададим случайный код для OderId
 
-    //private TableLayout tablelayout;
     private TableLayout photoLayout;
 
     ProgressDialog dialog = null;
@@ -131,7 +129,6 @@ public class MainActivity extends AppCompatActivity {
         OrderEdit= findViewById(R.id.editText);
         //operationlog= findViewById(R.id.filepath);
         path = Environment.getExternalStorageDirectory().toString();
-        //tablelayout = findViewById(R.id.tablelayout);
         photoLayout = findViewById(R.id.phototablelayout);
         uploadbutton = findViewById(R.id.uploadbutton);
 
