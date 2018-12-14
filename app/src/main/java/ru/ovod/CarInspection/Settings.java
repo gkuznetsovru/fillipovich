@@ -141,7 +141,7 @@ public class Settings extends Activity {
 
         Integer id;
         String SQL = "SELECT " + DBHelper.INSPECTION_ID + ", " + DBHelper.INSPECTION_ORDERID + " "
-                + " FROM " + DBHelper.INSPECTION + " where " + DBHelper.INSPECTION_CREATEDATE + " >= date('now','-"+i.toString()+" day')";
+                + " FROM " + DBHelper.INSPECTION + " where " + DBHelper.INSPECTION_CREATEDATE + " < date('now','-"+i.toString()+" day')";
         Cursor cursor = database.rawQuery(SQL, null);
         if (!cursor.isAfterLast()) {
             while (cursor.moveToNext()) {

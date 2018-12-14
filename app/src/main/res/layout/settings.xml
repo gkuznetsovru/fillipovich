@@ -54,7 +54,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginEnd="8dp"
+                android:layout_marginEnd="7dp"
                 android:onClick="ClickClearFileAndDB"
                 android:text="@string/Text_ClearsAll"
                 app:layout_constraintEnd_toEndOf="@+id/textView7"

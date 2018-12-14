@@ -9,7 +9,7 @@
     <string name="Menu_ListInspections">Акты осмотра</string>
     <string name="Menu_OrdersFromServer">ЗН с сервера</string>
     <string name="Menu_Settings">Настройки</string>
-    <string name="Text_ClearsAll">Очистить все акты и фото</string>
+    <string name="Text_ClearsAll">Очистить акты и фото</string>
     <string name="ClearAll">Очистка всех не залитых на сервер актов и фото</string>
     <string name="title_activity_settings">activity_settings</string>
     <string name="action_settings">Settings</string>
