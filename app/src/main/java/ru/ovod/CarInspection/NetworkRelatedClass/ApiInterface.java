@@ -13,7 +13,8 @@ import retrofit2.http.Part;
 public interface ApiInterface {
 
     @Multipart
-    @POST("https://smit.ovod.ru/upload/upl.php")
+    //@POST("https://smit.ovod.ru/upload/upl.php")
+    @POST(RetrofitApiClient.BASE_URL) // возьмем адрес для отправки фото из статичной переменной класса RetrofitApiClient
     Call<ResponseModel> fileUpload(
             @Part("sender_information") RequestBody description,
             @Part MultipartBody.Part file);

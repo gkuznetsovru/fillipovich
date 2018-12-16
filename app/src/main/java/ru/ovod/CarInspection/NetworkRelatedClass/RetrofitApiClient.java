@@ -12,7 +12,9 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitApiClient {
 
-    private static final String BASE_URL = "http://192.168.0.103/";
+    //public static final String BASE_URL = "http://192.168.10.3/";
+    // определим адрес для отправки фото
+    public static final String BASE_URL = "https://smit.ovod.ru/upload/upl.php/";
 
     private static Retrofit retrofit = null;
 

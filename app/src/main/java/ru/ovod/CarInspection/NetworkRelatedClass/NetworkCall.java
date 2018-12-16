@@ -26,7 +26,7 @@ public class NetworkCall {
     public static void fileUpload(String filePath, ImageSenderInfo imageSenderInfo) {
 
         ApiInterface apiInterface = RetrofitApiClient.getClient().create(ApiInterface.class);
-        Logger.addLogAdapter(new AndroidLogAdapter());
+        // Logger.addLogAdapter(new AndroidLogAdapter());
 
         File file = new File(filePath);
         //create RequestBody instance from file
@@ -52,8 +52,10 @@ public class NetworkCall {
 
                 if(responseModel != null){
                     EventBus.getDefault().post(new EventModel("response", responseModel.getMessage()));
-                    Logger.d("Response code " + response.code() +
+                    Log.e("Retrofit:", "Response code " + response.code() +
                             " Response Message: " + responseModel.getMessage());
+                    //Logger.d("Response code " + response.code() +
+                    //        " Response Message: " + responseModel.getMessage());
                 } else
                     EventBus.getDefault().post(new EventModel("response", "ResponseModel is NULL"));
             }
@@ -65,5 +67,7 @@ public class NetworkCall {
             }
         });
     }
+
+
 
 }
