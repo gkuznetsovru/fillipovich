@@ -1,4 +1,4 @@
-package ru.ovod.foto2;
+package ru.ovod.CarInspection;
 
 import android.Manifest;
 import android.app.Activity;
@@ -6,12 +6,12 @@ import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -21,17 +21,19 @@ import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Html;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -40,21 +42,23 @@ import android.widget.Toast;
 
 import android.util.Log;
 
+import com.squareup.picasso.Picasso;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Date;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Random;
-import android.util.Log;
-
 
 
 import pub.devrel.easypermissions.EasyPermissions;
 
-import ru.ovod.foto2.ModelClass.EventModel;
+import ru.ovod.CarInspection.ModelClass.EventModel;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -62,26 +66,31 @@ public class MainActivity extends AppCompatActivity {
     // Объявление глобальных переменных
     private Integer InspectionID =0; // InspectionID - текущий (активный) акт осмотра
     private String InspectionID_Number = ""; // Номер заказ-наряда, который привязан к выбранному InspectionID (объявлен выше)
-    private Integer OrderID = 0;  // OrderID
+    private Integer OrderID = 0;  // OrderID. Внимание !! Устанавливать через SetOrderID
     private EditText OrderEdit; //поле Edit с номером ЗН. Инициализируется OnCreate.
 
 
-    DBHelper dbhelper; // класс,  в котором задана структура нашей базы
+    DBHelper dbhelper; // класс,  в котором задана структура нашей локальной базы
     SQLiteDatabase database;  // база данных SQLite - с ней работаем в данном классе
     DataSet dataset = new DataSet(); // общий класс для доступа к базе овода
+    SettingsHelper settingshelper; // класс по работе с настройками
+    PhotoHelper photohelper; // класс по с функциями по ороаботке изображений
 
-
+    private Integer count_sending_images = 0 ; // счётчик отправляемых в текущий момент фто на сервер. Нужно для управление внешним видом кнопки Upload.
+                                               // устанавливать только через setCount_sending_images !!
     private ImageView MyImage;
     private Uri photoURI;
     private Uri outputFileUri;
-    private TextView operationlog;
     private File file;
+    private File thumbnaul_file;
     private String path;
-    private TableRow SelectedTableRow;
+    private Button uploadbutton;
+    private String Tmp_Number = "";
+
 
     TextView model;
     TextView vin;
-
+    TextView dateorder;
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
@@ -89,13 +98,23 @@ public class MainActivity extends AppCompatActivity {
     };
 
     static final int REQUEST_IMAGE_CAPTURE = 3374;  // зададим случайный код для активности получения фото
-    static final int REQUEST_ORDERID = 3477;  // зададим случайный код для OderId
+    static final int REQUEST_ORDERID = 3477;  // зададим случайный код для OrderId
 
-    private TableLayout tablelayout;
     private TableLayout photoLayout;
 
     ProgressDialog dialog = null;
 
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+
+     /*   if ( (OrderEdit.getText().toString()=="") && (Tmp_Number.toString()!="") ) // если номер пуст, а был ранее указан, то опять его заполним. Эта функция нужна для возврат из формы выбора ЗН кнопкой Back
+        {
+            OrderEdit.setText(Tmp_Number);
+        }*/
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,10 +124,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         MyImage= findViewById(R.id.mImageView);
         OrderEdit= findViewById(R.id.editText);
-        operationlog= findViewById(R.id.filepath);
+        //operationlog= findViewById(R.id.filepath);
         path = Environment.getExternalStorageDirectory().toString();
-        tablelayout = findViewById(R.id.tablelayout);
         photoLayout = findViewById(R.id.phototablelayout);
+        uploadbutton = findViewById(R.id.uploadbutton);
 
         verifyStoragePermissions(this);
         dbhelper = new DBHelper(getApplicationContext());
@@ -116,8 +135,10 @@ public class MainActivity extends AppCompatActivity {
 
         model = findViewById(R.id.model);
         vin = findViewById(R.id.vin);
+        dateorder = findViewById(R.id.dateorder);
 
-        GetInspectionListFromDB(); // получим список актов из локальной БД
+        settingshelper = new SettingsHelper(getApplicationContext());
+        photohelper = new PhotoHelper(getApplicationContext());
 
         // Allow application use internet
         if (android.os.Build.VERSION.SDK_INT > 9) {
@@ -126,6 +147,39 @@ public class MainActivity extends AppCompatActivity {
             StrictMode.setThreadPolicy(policy);
         }
 
+        FloatingActionButton fabPhoto = (FloatingActionButton) findViewById(R.id.fabPhoto);
+        fabPhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                NewPhotoClick(view);
+
+            }
+        });
+
+
+
+
+        OrderEdit.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                v.setFocusable(true);
+                v.setFocusableInTouchMode(true);
+                return false;
+            }
+        });
+
+
+        // проверим полученнные парметры при активации формы
+        Intent intent = getIntent();
+        InspectionID  = intent.getIntExtra("InsId",0);
+        if (InspectionID>0)  // если передан параметр, то извлечём вс из базы данных
+          {SetInspectionId(InspectionID);
+           MyImage.requestFocus();
+          }
+           else
+               {NewOrder();} // иначе готовим форму для нового акта
+
+        GetPhotoList();
     }
 
     // подцепим меню
@@ -135,6 +189,8 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+
+    // обработчик меню
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // получим идентификатор выбранного пункта меню
@@ -143,14 +199,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Операции для выбранного пункта меню
         switch (id) {
-            case R.id.Menu_ListInspections:
-                GetInspectionListFromDB();
-                return true;
-            case R.id.Menu_OrdersFromServer:
-              // infoTextView.setText("Вы выбрали кошку!");
-                return true;
             case R.id.Menu_Settings:
-              //  infoTextView.setText("Вы выбрали котёнка!");
                 Intent intent = new Intent(MainActivity.this,  Settings.class);
                 startActivity(intent);
                 return true;
@@ -158,6 +207,8 @@ public class MainActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -177,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
-    // Функция клика по новой фото
+    // Функция клика кнопке получения новой фоты
     public void NewPhotoClick(View view) {
 
         if  (OrderEdit.getText().length() == 0) {  // Проверим, что ЗН выбран
@@ -186,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (InspectionID_Number!=OrderEdit.getText().toString()) { // если предыдущий номер ЗН для сканирования был другой
-            OrderID=0; // сразу сбросим OrderID
+            setOrderID(0); // сразу сбросим OrderID
             InspectionID = GetInspectionIDByNumber(); // поищем тот что вбил мастер
 
             // Пока отключил проверку OrderId, чтоб время не терять на проверказ. Не знаю, верно это или нет
@@ -197,7 +248,6 @@ public class MainActivity extends AppCompatActivity {
 
             if (InspectionID == 0) {  // Если 0, то  сгенерим новый
                 InspectionID = CreateNewInspection();
-                GetInspectionListFromDB(); // получим список актов из локальной БД
             }
             InspectionID_Number = OrderEdit.getText().toString();  // запомним текущий номер ЗН
             //return;
@@ -237,7 +287,7 @@ public class MainActivity extends AppCompatActivity {
             cursor.moveToFirst();
             //while (cursor.moveToNext()) {
             id = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ID));
-            OrderID = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ORDERID));
+            setOrderID(cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ORDERID)));
             Log.e("DB ", "Извлекли INSPECTION_ID: " + id);
             //}
         }
@@ -247,60 +297,51 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    // Фунция получает список Inspections из базу и заполняете TableLayout
+    // Фунция получает список Фото из базы
     public  void GetPhotoList() {
 
         // проверим, что выбран (определён) акт осомотра
-        if (!CheckInspectionId()) {return;}
+        if (!CheckInspectionId(true)) {return;}
 
-        // очистикм tablelayout
-        photoLayout.removeAllViewsInLayout();
 
-        // получим из базы список Актов
-        String SQL = "SELECT " + DBHelper.PHOTO_ID + ", " + DBHelper.PHOTO_INSPECTION + ", "+ DBHelper.PHOTO_NAME
+        RecyclerView recyclerView = (RecyclerView)findViewById(R.id.imagegallery);
+        recyclerView.setHasFixedSize(true);
+
+        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getApplicationContext(),settingshelper.getCounter_cols()); // тут задаём количество фото в колонке
+        recyclerView.setLayoutManager(layoutManager);
+
+        ArrayList<CreateListPhoto> createLists = new ArrayList<>();;  // объявим массив фото
+
+
+        // получим из базы список Фото
+        String SQL = "SELECT " + DBHelper.PHOTO_ID + ", " + DBHelper.PHOTO_INSPECTION + ", "+ DBHelper.PHOTO_NAME_THUMBNAIL + ", "+ DBHelper.PHOTO_NAME  + ", "+ DBHelper.PHOTO_ISSYNC
                 + " FROM " + DBHelper.PHOTO + " where " + DBHelper.PHOTO_INSPECTION + "="+InspectionID.toString();
 
         Cursor cursor = database.rawQuery(SQL, null);
+
         if (!cursor.isAfterLast()) {
-            while (cursor.moveToNext()) {
-                Integer PhoID = cursor.getInt(cursor.getColumnIndex(DBHelper.PHOTO_ID));
-                String PhoNa = cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME));
-                AddTableRowPhoto(PhoNa,PhoID);
-                Log.e("DB ", "Добавилили фото в список: " + PhoNa);
+            while (cursor.moveToNext()) {  // цикл по списку фото
+
+                CreateListPhoto createList = new CreateListPhoto(); // объявим эксземпляр (фото)
+
+                Integer ph_id = (Integer) cursor.getInt(cursor.getColumnIndex(DBHelper.PHOTO_ID));
+                createList.setImage_id(ph_id);
+                createList.setFilename_thumdnail(cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME_THUMBNAIL)));
+                createList.setFilename(cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)));
+                createList.setImage_title(ph_id.toString()); // пока имени картинки дадим Photo_ID. Оно нигде не выводится
+                createList.setIsSync((Integer) cursor.getInt(cursor.getColumnIndex(DBHelper.PHOTO_ISSYNC))); // пока имени картинки дадим Photo_ID. Оно нигде не выводится
+                createLists.add(createList);
+                Log.e("DB ", "Добавилили фото в список: " + cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME_THUMBNAIL)));
             }
         }
         if (!cursor.isClosed()) {cursor.close();}
+
+        PhotoAdapter adapter = new PhotoAdapter(createLists, getApplicationContext(), path, MyImage);
+        recyclerView.setAdapter(adapter);
+
         return;
     }
 
-
-    // Фунция получает список Inspections из базу
-    public  void GetInspectionListFromDB() {
-
-        // очистикм tablelayout
-        tablelayout.removeAllViewsInLayout();
-
-        // получим из базы список Актов
-
-        String SQL = "SELECT " + DBHelper.INSPECTION_ID + ", " + DBHelper.INSPECTION_NUMBER + ", "+ DBHelper.INSPECTION_ORDERID + ", "
-                + " (SELECT count(*) from  "+ DBHelper.PHOTO + " where "+DBHelper.PHOTO_ISSYNC+"=0 and "
-                + DBHelper.PHOTO+"."+DBHelper.PHOTO_INSPECTION+" = " + DBHelper.INSPECTION+"."+DBHelper.INSPECTION_ID + ") as coun"
-               // + " 10 as coun"
-                + " FROM " + DBHelper.INSPECTION + " Order by "+ DBHelper.INSPECTION_ID;
-        Cursor cursor = database.rawQuery(SQL, null);
-        if (!cursor.isAfterLast()) {
-            while (cursor.moveToNext()) {
-                String num = cursor.getString(cursor.getColumnIndex(DBHelper.INSPECTION_NUMBER));
-                Integer OrdID = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ORDERID));
-                Integer InsID = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ID));
-                Integer Coun = cursor.getInt(cursor.getColumnIndex("coun"));
-                AddTableRow(num,OrdID,InsID, Coun);
-              Log.e("DB ", "Извлекли INSPECTION_ID: " + InsID);
-            }
-        }
-        if (!cursor.isClosed()) {cursor.close();}
-        return;
-    }
 
 
     // функци подготовки системы к вводу нового акта
@@ -309,22 +350,18 @@ public class MainActivity extends AppCompatActivity {
         // почистим переменные
         OrderEdit.setText("");
         InspectionID = 0;
-        OrderID = 0;
+        setOrderID(0);
         InspectionID_Number = "";
         model.setText(getString(R.string.modelbaseline));
         vin.setText(getString(R.string.vinbaseline));
     }
 
-    // обработка клика
-    public void NewOrder(View view) {
+    //  подготовим форму для формирование нового акта
+    public void NewOrder() {
         ClearInspection();
 
-        // в списке актов сбросим "активный" акт
-        for (int i = 0; i < tablelayout.getChildCount(); i++) {
-            View row = tablelayout.getChildAt(i);
-            row.setBackgroundColor(getResources().getColor(android.R.color.transparent));
-        }
-
+        OrderEdit.setFocusable(true);
+        OrderEdit.setFocusableInTouchMode(true);
         OrderEdit.requestFocus();
     }
 
@@ -350,26 +387,28 @@ public class MainActivity extends AppCompatActivity {
             String responseMessage = "Response from Server:\n" + event.getMessage();
             if (event.getMessage().contains("error"))
                {
-                   operationlog.append(responseMessage+"\n");
+                  // operationlog.append(responseMessage+"\n");
                }
                else {
-                operationlog.append("Файл загружен на сервер:\n");
-                operationlog.append(event.getMessage() + "\n");
+                //operationlog.append("Файл загружен на сервер:\n");
+                //operationlog.append(event.getMessage() + "\n");
                 File file = new File(path+"/"+event.getMessage());
-                Boolean b = file.delete();
-                //Boolean b = Boolean.TRUE;
+                Boolean b = true; // затычка вместо удаления файла
+                // Boolean b = file.delete();  // удаление файлов отключено
+
                 if (b)
                 {
-                    operationlog.append("Файл удалён:\n");
-                    operationlog.append(event.getMessage() + "\n");
+                    //operationlog.append("Файл удалён:\n");
+                    //operationlog.append(event.getMessage() + "\n");
 
                     // пометим в базе, что файл сихронизирован
                     ContentValues contentValues = new ContentValues();
                     contentValues.put(DBHelper.PHOTO_ISSYNC, 1);
                     int Inspect = database.update(DBHelper.PHOTO, contentValues, DBHelper.PHOTO_NAME+"=?", new String[] { event.getMessage() });
-                    Log.e("Фото сихронизированно в базе:", event.getMessage() );
+                    Log.e("Фото в базе:", event.getMessage() );
 
                 }
+                setCount_sending_images(count_sending_images-1); // уменьшим счётчик загружаемых изображений
             }
         }
     }
@@ -384,6 +423,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    // генерация уникального имени файла
     String generateUniqueFileName() {
         String filename = "";
         long millis = System.currentTimeMillis();
@@ -394,13 +434,46 @@ public class MainActivity extends AppCompatActivity {
         return filename;
     }
 
+
+    // генерацияи случайного имени файла
     private String GetFileName() {
         String logFileName="";
-        //String logFileName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
-        //logFileName = OrderEdit.getText()+"_"+ logFileName+".jpg";
 
-        logFileName=OrderEdit.getText()+"_"+generateUniqueFileName()+".jpg";
+        String gUF = generateUniqueFileName();  // получим случайную строку
+        logFileName=OrderEdit.getText()+"_"+gUF+".jpg";
+
+        // сгенерим сразу File для Thumbnail
+        thumbnaul_file = new File(path+"/"+OrderEdit.getText()+"_"+gUF+"_small.jpg");
+
         return logFileName;
+    }
+
+
+    // функция записи Bitmap (Thumbnail) в файл
+    private void saveBitmap(Bitmap bitmap,String path){
+        if(bitmap!=null){
+            try {
+                FileOutputStream outputStream = null;
+                try {
+                    outputStream = new FileOutputStream(path); //here is set your file path where you want to save or also here you can set file object directly
+
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream); // bitmap is your Bitmap instance, if you want to compress it you can compress reduce percentage
+                    // PNG is a lossless format, the compression factor (100) is ignored
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        if (outputStream != null) {
+                            outputStream.close();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
@@ -413,15 +486,18 @@ public class MainActivity extends AppCompatActivity {
         // обработаем получение фото
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
 
+
             // запишем информацию о фото в базу
             ContentValues contentValues = new ContentValues();
             contentValues.put(DBHelper.PHOTO_PATH, file.getPath());
             contentValues.put(DBHelper.PHOTO_NAME, file.getName());
+            contentValues.put(DBHelper.PHOTO_NAME_THUMBNAIL, thumbnaul_file.getName());
             contentValues.put(DBHelper.PHOTO_INSPECTION, InspectionID);
             contentValues.put(DBHelper.PHOTO_ISSYNC, 0);
             Long Inspect = database.insert(DBHelper.PHOTO, null, contentValues);
             Integer id =  Inspect !=null ? Inspect.intValue() :null;
-            Log.e("ID добавленной фото:", InspectionID.toString());
+            Log.e("ID добавленной фото:", id.toString());
+            Log.e("Preview:", thumbnaul_file.getPath());
 
             // Проверяем, содержит ли результат маленькую картинку
             if (data != null) {
@@ -433,81 +509,101 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 // Какие-то действия с полноценным изображением,
                 // сохраненным по адресу outputFileUri
-                MyImage.setImageURI(outputFileUri);
+                //MyImage.setImageURI(outputFileUri);
+
+                // сформируем сразу Preview
+                int px = 85;
+                Bitmap myBitmap = photohelper.decodeSampledBitmapFromResource( file.getAbsolutePath(), px, px);
+
+                Integer angle = 0; // по умолчанию не поворачиваем
+                try {
+                    angle = photohelper.angleToReturn( getApplicationContext(),Uri.fromFile(file));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                if (angle>0) {
+                    myBitmap = photohelper.RotateBitmap(myBitmap, angle);  // перевернём Preview
+
+
+                    // заодно перевернём большое изображение в асинхронном потоке
+                    // переворот отключил
+//                    PhotoAsyncTask photoAsync = new PhotoAsyncTask(angle,file);
+//                    photoAsync.execute();
+                }
+                saveBitmap(myBitmap, thumbnaul_file.getPath());
+
+                //MyImage.setImageURI(Uri.fromFile(thumbnaul_file));
+                photohelper.LoadImageFromFile(file,MyImage);
             }
-            operationlog.append("Файл сформирован:\n");
-            operationlog.append(file.getName() + "\n");
-            GetInspectionListFromDB();
+
+            //operationlog.append("Файл сформирован:\n");
+            //operationlog.append(file.getName() + "\n");
+
+            GetPhotoList(); // обновим список фото
         }
 
         // обработаем получение OrderID
         if (requestCode == REQUEST_ORDERID && resultCode == RESULT_OK)
         {
             OrderID = (Integer) data.getIntExtra("OrdId",0);
-            if (OrderID>0) {
+            if (OrderID>0) { // если получен OrderID
                 OrderEdit.setText(GetNumberByOrderId(OrderID));  // получим OrderId
 
-                // пометим в базе, что файл сихронизирован
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(DBHelper.INSPECTION_NUMBER, OrderEdit.getText().toString());
-                contentValues.put(DBHelper.INSPECTION_ORDERID, OrderID);
-                int Inspect = database.update(DBHelper.INSPECTION, contentValues, DBHelper.INSPECTION_ID+"=?", new String[] { InspectionID.toString() });
-                Log.e("Изменили в базе Inspection:", InspectionID.toString() );
-
-                GetInspectionListFromDB(); // обновим список
-
                 GetOrderIdByNumber(); // заполним модель и VIN
+                SaveOrderInfoToInspection();
 
-        }
+            }
 
         }
     }
 
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,
-                ".jpg",
-                storageDir
-        );
 
-        // Save a file: path for use with ACTION_VIEW intents
-        //mCurrentPhotoPath = image.getAbsolutePath();
-
-
-
-
-        return image;
+    // запись в локальную базу информации об Inspection
+    private  void SaveOrderInfoToInspection() {
+        // зальём в нашу БД выбранную информаци по PY.
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(DBHelper.INSPECTION_NUMBER, OrderEdit.getText().toString());
+        contentValues.put(DBHelper.INSPECTION_MODEL, model.getText().toString());
+        contentValues.put(DBHelper.INSPECTION_VIN, vin.getText().toString());
+        contentValues.put(DBHelper.INSPECTION_DATE, dateorder.getText().toString());
+        contentValues.put(DBHelper.INSPECTION_ORDERID, OrderID);
+        int Inspect = database.update(DBHelper.INSPECTION, contentValues, DBHelper.INSPECTION_ID + "=?", new String[]{InspectionID.toString()});
+        Log.e("Изменили в лок. базе:", InspectionID.toString());
     }
 
 
     private void saveFullImage(String fn) {
+
+        //StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        //StrictMode.setVmPolicy(builder.build());
+
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         file = new File(path,
                 fn);
-//                "Test.jpg");
-        //operationlog.setText(file.getPath()+file.getName());
         outputFileUri =  Uri.fromFile(file);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
+        //intent.putExtra(MediaStore.EXTRA_SCREEN_ORIENTATION, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        intent.putExtra(MediaStore.EXTRA_SCREEN_ORIENTATION, ActivityInfo.SCREEN_ORIENTATION_FULL_USER); // фигня какая-то.. Не работает этот параметр
         startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
 
     }
 
-    public Boolean CheckInspectionId() {
+    // функция проверяет, определён ли InspectionId и вызвает функции формирование InspectionId
+    public Boolean CheckInspectionId(Boolean silent) {  // silent - не показывать сообщение
 
         if (InspectionID == 0) {
             InspectionID = GetInspectionIDByNumber(); // поищем тот что вбил мастер
             if (InspectionID == 0) {
-                showToast("Не найден акт осмотра");
+                if (!silent) {showToast("Не найден акт осмотра");}
                 return Boolean.FALSE;
             }
         }
         return Boolean.TRUE;
     }
 
+
+    // функция синхронизации
     public void Sync(View view) {
 
         if (!isOnline())
@@ -517,7 +613,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // проверим, что выбран коррретный акт
-        if (!CheckInspectionId()) {return;}
+        if (!CheckInspectionId(false)) {return;}
 
 
         if (OrderID==0) {
@@ -537,25 +633,19 @@ public class MainActivity extends AppCompatActivity {
         if (!cursor.isAfterLast()) {
             while (cursor.moveToNext()) {
                 // отправка файла
+                //operationlog.append("Начало отправки файла:\n");
+                //operationlog.append(cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)) + "\n");
                 Log.e("DB ", "Начали отправку файла: " + cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)).toString() );
-                ru.ovod.foto2.NetworkRelatedClass.NetworkCall.fileUpload(path+"/"+cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)).toString(), new ru.ovod.foto2.ModelClass.ImageSenderInfo(OrderID.toString(), OrderEdit.getText().toString() ));
+                setCount_sending_images(count_sending_images+1);
+                ru.ovod.CarInspection.NetworkRelatedClass.NetworkCall.fileUpload(path+"/"+cursor.getString(cursor.getColumnIndex(DBHelper.PHOTO_NAME)).toString(), new ru.ovod.CarInspection.ModelClass.ImageSenderInfo(OrderID.toString(), OrderEdit.getText().toString() ));
             }
+        }
+        else
+        {
+            showToast("Все изображения уже залиты на севрер.");
         }
         if (!cursor.isClosed()) {cursor.close();}
 
-/*
-        File directory = new File(path);
-        File[] files = directory.listFiles();
-        //operationlog.append("Size: "+ files.length+"\n" );
-        for (int i = 0; i < files.length; i++)
-        {
-            if (files[i].getName().contains("jpg")) {
-                operationlog.append("Начало отправки файла:\n");
-                operationlog.append(files[i].getName() + "\n");
-                ru.ovod.foto2.NetworkRelatedClass.NetworkCall.fileUpload(path+"/"+files[i].getName(), new ru.ovod.foto2.ModelClass.ImageSenderInfo(OrderID.toString(), OrderEdit.getText().toString() ));
-                //break;
-            }
-        }*/
     }
 
     @Override
@@ -586,76 +676,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // функция доабвление строки
-    private void  AddTableRow(String Numd, Integer Int_OrderId, Integer inspectid, Integer coun)
-    {
-
-        TextView col1= new TextView(this);
-        //TextView col2= new TextView(this);
-        //TextView col3= new TextView(this);
 
 
-        col1.setText( Html.fromHtml("№ <b>"+Numd +"</b> "+" Фото: <b>" +coun.toString()+"</b>"));
-        //col3.setText(" Фото: <b>" +coun.toString()+"</b>");
-
-        TableRow tableRow = new TableRow(this);
-
-        tableRow.addView(col1);
-        //tableRow.addView(col2);
-        //tableRow.addView(col3);
-
-        tableRow.setTag(inspectid);
-
-        //tableRow.setTag(inspectid, tableRow);
-
-        tableRow.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-
-
-                                            for (int i = 0; i < tablelayout.getChildCount(); i++) {
-                                                View row = tablelayout.getChildAt(i);
-                                                if (row == v) {
-                                                    row.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
-                                                } else {
-                                                    //Change this to your normal background color.
-                                                    row.setBackgroundColor(getResources().getColor(android.R.color.transparent));
-                                                }
-                                            }
-                                            ClearInspection();
-                                            SetInspectionId((Integer) v.getTag());
-                                            // GetPhotoList(); // !!! Внимание ! Временно отключил формирвоание списка, чтоб быстрее работало. готовлю демо-версию к запуску
-
-
-
-                                        }
-                                    });
-
-
-        tableRow.setPadding(5,9,5,9);
-
-        tablelayout.addView(tableRow);
-    }
-
-
-
-    // функция сжатия изображения из примера  https://startandroid.ru/ru/uroki/vse-uroki-spiskom/372-urok-160-risovanie-bitmap-chtenie-izobrazhenij-bolshogo-razmera.html
-    public static Bitmap decodeSampledBitmapFromResource(String path,
-                                                         int reqWidth, int reqHeight) {
-
-        // Читаем с inJustDecodeBounds=true для определения размеров
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(path, options);
-
-        // Вычисляем inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth,
-                reqHeight);
-
-        // Читаем с использованием inSampleSize коэффициента
-        options.inJustDecodeBounds = false;
-        return BitmapFactory.decodeFile(path, options);
-    }
 
     // функция сжатия изображения из примера  https://startandroid.ru/ru/uroki/vse-uroki-spiskom/372-urok-160-risovanie-bitmap-chtenie-izobrazhenij-bolshogo-razmera.html
     public static int calculateInSampleSize(BitmapFactory.Options options,
@@ -693,7 +715,7 @@ public class MainActivity extends AppCompatActivity {
 
         int px = 85;
         File file = new File(path,photo);
-        Bitmap bitmap = decodeSampledBitmapFromResource(file.getAbsolutePath(), px, px);
+        Bitmap bitmap = photohelper.decodeSampledBitmapFromResource(file.getAbsolutePath(), px, px);
         Log.d("log", String.format("Required size = %s, bitmap size = %sx%s, byteCount = %s",
                 px, bitmap.getWidth(), bitmap.getHeight(), bitmap.getByteCount()));
         im.setImageBitmap(bitmap);
@@ -736,9 +758,10 @@ public class MainActivity extends AppCompatActivity {
         if (dataset.RecordCount()>0)
         {
             dataset.GetRowByNumber(0);
-            OrderID = dataset.FieldByName_AsInteger("orderid");
+            setOrderID(dataset.FieldByName_AsInteger("orderid"));
             model.setText(dataset.FieldByName_AsString("model"));
             vin.setText(dataset.FieldByName_AsString("vin"));
+            dateorder.setText( dataset.FieldByName_AsString("date").substring(0,10));
 
         }
 
@@ -762,19 +785,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     // функция устанавливает InspectionId (излекает данные из базы)
     public void SetInspectionId (Integer InsID)
     {
         InspectionID = InsID;
 
-        String SQL = "SELECT " + DBHelper.INSPECTION_NUMBER + ", " + DBHelper.INSPECTION_ORDERID + " "
+        String SQL = "SELECT " + DBHelper.INSPECTION_NUMBER + ", " + DBHelper.INSPECTION_ORDERID + ", "
+                + DBHelper.INSPECTION_MODEL + ", " + DBHelper.INSPECTION_VIN + ", " + DBHelper.INSPECTION_ISSYNC + ", " + DBHelper.INSPECTION_DATE + " "
                 + " FROM " + DBHelper.INSPECTION + " where " + DBHelper.INSPECTION_ID +" = "+InspectionID.toString()+" ";
         Cursor cursor = database.rawQuery(SQL, null);
         if (!cursor.isAfterLast()) {
             cursor.moveToFirst();
-            OrderID = cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ORDERID));
+            setOrderID(cursor.getInt(cursor.getColumnIndex(DBHelper.INSPECTION_ORDERID)));
             OrderEdit.setText( cursor.getString(cursor.getColumnIndex(DBHelper.INSPECTION_NUMBER)));
+            model.setText( cursor.getString(cursor.getColumnIndex(DBHelper.INSPECTION_MODEL)));
+            vin.setText( cursor.getString(cursor.getColumnIndex(DBHelper.INSPECTION_VIN)));
+            dateorder.setText(cursor.getString(cursor.getColumnIndex(DBHelper.INSPECTION_DATE)));
             InspectionID_Number=OrderEdit.getText().toString();
             Log.e("DB ", "Извлекли  данные по INSPECTION_ID: " + InspectionID.toString());
         }
@@ -791,30 +817,79 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if (InspectionID==0)  // если нет записи в базе с InspectionID (нет ни одной фото)
+
+        if  (OrderEdit.getText().length() == 0) {  // Проверим, что ЗН выбран
+            showToast("Укажите номер заказ-наряда.");
+            return;
+        }
+
+        if (InspectionID_Number!=OrderEdit.getText().toString()) { // если предыдущий номер ЗН для сканирования был другой
+            setOrderID(0); // сразу сбросим OrderID
+            InspectionID = GetInspectionIDByNumber(); // поищем тот что вбил мастер
+
+            if (InspectionID == 0) {  // Если 0, то  сгенерим новый
+                InspectionID = CreateNewInspection();
+            }
+            InspectionID_Number = OrderEdit.getText().toString();  // запомним текущий номер ЗН
+            //return;
+        }
+
+
+        if (InspectionID==0)  // если не определён акт осмотра (такого не текущий момент не должно быть)
         {
             showToast("Не выбран акт осмотра (или нет фотографий).");
             return;
         }
 
-
-        // зачистим перменны перед поискао
-        OrderID=0;
-        model.setText(getString(R.string.modelbaseline));
-        vin.setText(getString(R.string.vinbaseline));
+        // зачистим переменны перед поиском
+        setOrderID(0);
+        model.setText("");
+        vin.setText("");
+        dateorder.setText("");
 
         GetOrderIdByNumber(); // ищем данные по нммеру акта
 
         if (OrderID==0) // если ЗН не обнаружен
         {
             // то запросим у менеджера выбор ЗН
-            //Intent intent = new Intent(MainActivity.this,  SelectOrderActivity.class );
-            //startActivity(intent);
-
             Intent questionIntent = new Intent(MainActivity.this, SelectOrderActivity.class);
             startActivityForResult(questionIntent, REQUEST_ORDERID);
-            //showToast("Не найден заказ-наряд с таким номером на сервере");
         }
+        else
+        {
+            // запишем в локальную базу обновлённую инфомрацию
+            SaveOrderInfoToInspection();
+        }
+    }
+
+
+    // Setter для OrderID.  Должен отключать кнопку
+    public void setOrderID(Integer orderID) {
+        OrderID = orderID;
+
+        // отключение кнопки пока убрал.. Не знаю, надо ли блокировать. Т.к. при нажатии есть проверка и сообщение - так понятнее, мне кажется.
+        // uploadbutton.setEnabled(OrderID>0); // отключим кнопку, если OrderID не опередлён
+
+    }
+
+
+    // Setter для счётчкиа выгружаемых изображений. Меняем кнопку Upload
+    public void setCount_sending_images(Integer count_sending_images) {
+        if (count_sending_images>0)
+        {
+            uploadbutton.setText("Идёт отправка фотографий.");
+            uploadbutton.setEnabled(false); // отключим кнопку, если идёт  отравка фото
+        }
+        else
+        {
+            uploadbutton.setText(getString(R.string.uploadtestbutton));
+            uploadbutton.setEnabled(true); // отключим кнопку, если идёт  отравка фото
+            if (this.count_sending_images > count_sending_images)  // если предыдущее значение было больше 0, то обновим список Preview (чтоб наложить изображение)
+            {
+                GetPhotoList();
+            }
+        }
+        this.count_sending_images = count_sending_images;
     }
 
 

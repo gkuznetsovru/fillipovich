@@ -1,6 +1,6 @@
-package ru.ovod.foto2.NetworkRelatedClass;
+package ru.ovod.CarInspection.NetworkRelatedClass;
 
-import ru.ovod.foto2.ModelClass.ResponseModel;
+import ru.ovod.CarInspection.ModelClass.ResponseModel;
 
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
@@ -13,7 +13,7 @@ import retrofit2.http.Part;
 public interface ApiInterface {
 
     @Multipart
-    @POST("https://smit.ovod.ru/upload/upl.php")
+    @POST(RetrofitApiClient.BASE_URL) // возьмем адрес для отправки фото из статичной переменной класса RetrofitApiClient
     Call<ResponseModel> fileUpload(
             @Part("sender_information") RequestBody description,
             @Part MultipartBody.Part file);

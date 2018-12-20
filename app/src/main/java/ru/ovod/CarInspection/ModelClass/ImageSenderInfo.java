@@ -1,11 +1,12 @@
 
-package ru.ovod.foto2.ModelClass;
+package ru.ovod.CarInspection.ModelClass;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.google.gson.annotations.SerializedName;
 
+// объявим класс для передачи информации вместе с фото на базе Интерфейса Parcelable (посылаем)
 public class ImageSenderInfo implements Parcelable {
 
     @SerializedName("orderid")
@@ -17,6 +18,7 @@ public class ImageSenderInfo implements Parcelable {
     public ImageSenderInfo() {
     }
 
+    // Constructor c нужными переменными
     public ImageSenderInfo(String orderid, String number) {
         this.orderid = orderid;
         this.number = number;
@@ -41,6 +43,7 @@ public class ImageSenderInfo implements Parcelable {
     };
 
 
+    // загрузим наши данные в посылку
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeValue(orderid);
         dest.writeValue(number);

@@ -1,4 +1,4 @@
-package ru.ovod.foto2;
+package ru.ovod.CarInspection;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,8 +43,9 @@ connectdb.php - это  библиотерка, инициализирующая
 
 public class DataSet {
 
-    // объявим адрес доступа к PHP json, который обрабатывае запросы
-    String url_for_web = "https://smit.ovod.ru/upload/json.php";
+    // объявим адрес доступа к PHP json, которая обрабатывает запросы
+    String url_for_web = "https://your_domen/json.php";   // тестовый
+
 
     // результат выборки с сервера в формате JSONArray
     // нумерация начинается с нуля !
@@ -123,6 +124,8 @@ public class DataSet {
         }
         return res;
     }
+
+
 
 
     // функция обрабатывает на сервере POST-запросы

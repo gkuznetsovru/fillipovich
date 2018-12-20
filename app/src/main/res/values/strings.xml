@@ -9,13 +9,25 @@
     <string name="Menu_ListInspections">Акты осмотра</string>
     <string name="Menu_OrdersFromServer">ЗН с сервера</string>
     <string name="Menu_Settings">Настройки</string>
-    <string name="Text_ClearsAll">Очистить все акты и фото</string>
+    <string name="Text_ClearsAll">Очистить акты и фото</string>
     <string name="ClearAll">Очистка всех не залитых на сервер актов и фото</string>
     <string name="title_activity_settings">activity_settings</string>
     <string name="action_settings">Settings</string>
     <string name="ListPhoto">  Фото:</string>
-    <string name="uploadtestbutton">Upload</string>
+    <string name="uploadtestbutton">Загрузить фото на сервер</string>
     <string name="modelbaseline">Модель</string>
     <string name="vinbaseline">VIN</string>
     <string name="title_activity_select_order">Выберите ЗН</string>
+    <string name="title_activity_start">Акты осмотра</string>
+    <string name="dateorderhint">Дата заказ-наряда</string>
+    <string name="PhotoCo">Фото</string>
+    <string name="OrderNumber">Номер заказ-наряда</string>
+    <string name="OrderDate">Дата заказ-наряда</string>
+    <string name="OrderDate_Short">Дата </string>
+    <string name="IsSynced">Загружен</string>
+    <string name="VIN">VIN</string>
+    <string name="ModelName">Модель</string>
+    <string name="ShowActs">Показывать синхронизированные акты осмотра</string>
+    <string name="CenterOvod">Автоцентр Овод</string>
 </resources>
+

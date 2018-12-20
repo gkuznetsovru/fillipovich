@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".StartActivity">
+
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_neworder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="16dp"
+        android:clickable="true"
+        app:layout_anchorGravity="right|bottom"
+
+
+        app:srcCompat="@android:drawable/ic_input_add" />
+
+
+    <include
+        android:id="@+id/include20"
+        layout="@layout/content_start"
+        android:layout_height="match_parent"
+        android:visibility="visible"
+        app:layout_anchor="@+id/app_bar"
+        app:layout_anchorGravity="right|bottom" />
+
+</android.support.design.widget.CoordinatorLayout>

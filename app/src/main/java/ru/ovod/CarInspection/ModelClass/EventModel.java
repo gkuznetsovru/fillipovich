@@ -1,4 +1,4 @@
-package ru.ovod.foto2.ModelClass;
+package ru.ovod.CarInspection.ModelClass;
 
 public class EventModel {
     private String eventTag;

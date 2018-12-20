@@ -1,5 +1,5 @@
 
-package ru.ovod.foto2.ModelClass;
+package ru.ovod.CarInspection.ModelClass;
 
 import android.os.Parcel;
 import android.os.Parcelable;

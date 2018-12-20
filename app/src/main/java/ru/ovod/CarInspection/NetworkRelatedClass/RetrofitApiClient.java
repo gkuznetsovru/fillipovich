@@ -1,4 +1,4 @@
-package ru.ovod.foto2.NetworkRelatedClass;
+package ru.ovod.CarInspection.NetworkRelatedClass;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -12,7 +12,9 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitApiClient {
 
-    private static final String BASE_URL = "http://192.168.0.103/";
+    //public static final String BASE_URL = "http://192.168.10.3/";
+    // определим адрес для отправки фото
+    public static final String BASE_URL = "https:/your_domen/upl.php/";
 
     private static Retrofit retrofit = null;
 
