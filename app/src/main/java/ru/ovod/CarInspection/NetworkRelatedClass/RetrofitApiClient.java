@@ -14,7 +14,7 @@ public class RetrofitApiClient {
 
     //public static final String BASE_URL = "http://192.168.10.3/";
     // определим адрес для отправки фото
-    public static final String BASE_URL = "https://smit.ovod.ru/upload/upl.php/";
+    public static final String BASE_URL = "https:/your_domen/upl.php/";
 
     private static Retrofit retrofit = null;
 
